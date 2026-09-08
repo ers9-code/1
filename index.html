@@ -46,17 +46,16 @@ html,body{margin:0;background:#eee3df;color:var(--charcoal);font-family:'Segoe U
 .page.right.portrait{padding:10mm 12mm 10mm 18mm}
 .page.single.portrait{padding:10mm 14mm}
 .page.landscape{padding:10mm 14mm}
-.page::before{content:"";position:absolute;width:13mm;height:13mm;border:.55mm solid rgba(92,44,77,.26);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;top:-6.5mm;pointer-events:none}
-.page::after{content:"";position:absolute;width:8mm;height:8mm;border:.28mm solid rgba(171,138,76,.8);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;top:-3.8mm;pointer-events:none}
-.page.left::before,.page.left::after{left:-6.5mm}.page.left::after{left:-3.8mm}
-.page.right::before,.page.right::after,.page.single::before,.page.single::after,.page.landscape::before,.page.landscape::after{right:-6.5mm}.page.right::after,.page.single::after,.page.landscape::after{right:-3.8mm}
+.page::before{content:"";position:absolute;width:12mm;height:12mm;border:.5mm solid rgba(171,138,76,.7);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;top:-6mm;pointer-events:none}
+.page::after{content:"";position:absolute;width:8mm;height:8mm;border:.32mm solid rgba(92,44,77,.22);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;top:-4mm;pointer-events:none}
+.page.left::before,.page.left::after{left:-6mm}.page.left::after{left:-4mm}
+.page.right::before,.page.right::after,.page.single::before,.page.single::after,.page.landscape::before,.page.landscape::after{right:-6mm}.page.right::after,.page.single::after,.page.landscape::after{right:-4mm}
 .deco{position:absolute;bottom:8mm;width:15mm;height:11mm;pointer-events:none;
-  background-image:radial-gradient(var(--dot) .55px,transparent .6px);background-size:3mm 3mm}
+  background-image:radial-gradient(rgba(171,138,76,.5) .6px,transparent .65px);background-size:3mm 3mm}
 .page.left .deco{left:8mm}
 .page.right .deco,.page.single .deco,.page.landscape .deco{right:8mm}
 .page-inner{height:100%;display:flex;flex-direction:column;min-height:0;position:relative;z-index:1}
-.header{height:16mm;border-bottom:.35mm solid var(--charcoal);position:relative;display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:2.7mm;flex:0 0 auto}
-.header::after{content:"";position:absolute;left:0;right:0;bottom:-1.15mm;height:.55mm;background:linear-gradient(to right,var(--gold),rgba(171,138,76,0) 55%)}
+.header{height:16mm;border-bottom:.5mm solid var(--gold);position:relative;display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:2.7mm;flex:0 0 auto}
 .header.compact{height:13mm}
 .kicker{font-size:2.45mm;letter-spacing:.13em;text-transform:uppercase;color:var(--grey);font-weight:800;margin-bottom:1mm;display:flex;align-items:center;gap:1.3mm}
 .kicker::before{content:"";width:1.3mm;height:1.3mm;border-radius:50%;background:var(--gold);flex:0 0 auto}
@@ -66,7 +65,7 @@ html,body{margin:0;background:#eee3df;color:var(--charcoal);font-family:'Segoe U
 .due{display:inline-block;margin-top:1.4mm;padding:1.1mm 2.6mm;background:var(--plum);border-radius:99mm;color:#fff;font-size:2.55mm;font-weight:800;letter-spacing:.05em}
 .section{margin-top:3mm;flex:0 0 auto;min-height:0}
 .section.grow{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
-.section-head{height:5mm;display:flex;align-items:center;gap:2mm;margin-bottom:1.2mm;flex:0 0 auto;padding-left:2.4mm;border-left:.7mm solid var(--plum);background:rgba(104,50,90,.045)}
+.section-head{height:5mm;display:flex;align-items:center;gap:2mm;margin-bottom:1.2mm;flex:0 0 auto;padding-left:2.6mm;border-left:.9mm solid var(--plum);background:var(--mauve-tint)}
 .section-title{font-size:2.85mm;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .section-sub{margin-left:auto;font-size:2.35mm;color:var(--grey);font-weight:600;white-space:nowrap;padding-right:2mm}
 .ruled{border-top:.23mm solid var(--line)}
@@ -83,12 +82,10 @@ html,body{margin:0;background:#eee3df;color:var(--charcoal);font-family:'Segoe U
 .entry{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;border:.23mm solid var(--line);border-radius:1.6mm;padding:2.2mm 3mm 2mm}
 .entry-top{display:flex;align-items:center;gap:2.6mm;flex:0 0 auto}
 .entry-num{width:6.2mm;height:6.2mm;border-radius:50%;background:var(--plum);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:3.1mm;flex:0 0 auto;font-family:'Playfair Display Planner',Georgia,serif}
-.entry-fields{display:flex;flex-wrap:wrap;gap:1mm 6mm;flex:1 1 auto}
-.entry-fields span{display:flex;align-items:center;gap:1.6mm;font-size:2.5mm;color:var(--grey);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.entry-fields span i{width:24mm;border-bottom:.2mm solid var(--line-dark);height:3.2mm;flex:0 0 auto}
+.entry-fields{display:flex;flex-wrap:wrap;gap:1mm 4mm;flex:1 1 auto}
+.entry-fields span{display:flex;align-items:center;gap:1.4mm;font-size:2.4mm;color:var(--grey);font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.entry-fields span i{width:17mm;border-bottom:.2mm solid var(--line-dark);height:3.2mm;flex:0 0 auto}
 .entry-summary-label{font-size:2.3mm;text-transform:uppercase;letter-spacing:.06em;color:var(--grey);font-weight:800;flex:0 0 auto;margin-top:1.4mm}
-.entry-lines{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:space-between;padding:1mm 0}
-.eline{border-bottom:.2mm solid var(--line)}
 .entry-status{display:flex;gap:5mm;font-size:2.5mm;font-weight:600;color:var(--charcoal);flex:0 0 auto;margin-top:1mm}
 .entry-status label{display:flex;align-items:center;gap:1.4mm}
 .entry-status .checkbox{margin-left:0}
@@ -200,7 +197,7 @@ function inlineFields(labels){return `<div class="inline-fields">${labels.map(l=
 function taskRows(n,style=false){const cls=style==='tall'?'tall':style==='compact'?'compact':(style?'roomy':'');return `<div class="ruled">${Array.from({length:n},()=>`<div class="row taskrow ${cls}"><span class="checkbox"></span><span></span></div>`).join('')}</div>`}
 function structured(n,cls,heads,roomy=false){return `<div class="table-head ${cls}">${heads.map(h=>`<div>${h}</div>`).join('')}</div><div class="ruled">${Array.from({length:n},()=>`<div class="row ${cls} ${roomy?'roomy':''}"><span class="checkbox"></span>${heads.slice(1).map(()=>'<span></span>').join('')}</div>`).join('')}</div>`}
 function plainLines(n,roomy=false){return `<div class="ruled">${Array.from({length:n},()=>`<div class="row ${roomy?'roomy':''}"><span></span></div>`).join('')}</div>`}
-function sentralEntry(n){return `<div class="entry"><div class="entry-top"><span class="entry-num">${n}</span><div class="entry-fields"><span>Student<i></i></span><span>Staff member<i></i></span><span>Sentral # / Ref<i></i></span><span>Date<i></i></span></div></div><div class="entry-summary-label">Quick summary</div><div class="entry-lines">${Array.from({length:3},()=>'<div class="eline"></div>').join('')}</div><div class="entry-status"><label><span class="checkbox"></span>FYI only</label><label><span class="checkbox"></span>Welfare follow-up needed</label><label><span class="checkbox"></span>Followed up / actioned</label></div></div>`}
+function sentralEntry(n){return `<div class="entry"><div class="entry-top"><span class="entry-num">${n}</span><div class="entry-fields"><span>Student<i></i></span><span>Staff member<i></i></span><span>Sentral # / Ref<i></i></span><span>Date<i></i></span></div></div><div class="entry-summary-label">Quick summary</div><div class="lines-fill"></div><div class="entry-status"><label><span class="checkbox"></span>FYI only</label><label><span class="checkbox"></span>Welfare follow-up needed</label><label><span class="checkbox"></span>Followed up / actioned</label></div></div>`}
 function pageChrome(html){return `<div class="page-inner">${html}</div><div class="deco" aria-hidden="true"></div>`}
 function page(html,orientation='portrait',side='single',label=''){pages.push({html:pageChrome(html),orientation,side,label})}
 function spread(left,right,label=''){left.side='left';right.side='right';left.label=label;pages.push(left,right)}
