@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welfare Term Planner Generator v2</title>
+<style>
+:root{
+  --plum:#5c2c4d;
+  --plum-deep:#3c1c33;
+  --mauve:#8a6c82;
+  --mauve-tint:#f1eaef;
+  --charcoal:#26272b;
+  --black:#101114;
+  --grey:#5a5b61;
+  --mid:#8d8e93;
+  --line:#d7d7da;
+  --line-dark:#b3b4b9;
+  --stone:#f3f1ee;
+  --stone-line:#e7e4e0;
+  --gold:#ab8a4c;
+  --paper:#fff;
+  --dot:#cfd0d4;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#e8e7e5;color:var(--charcoal);font-family:Arial,Helvetica,sans-serif}
+.controls{position:sticky;top:0;z-index:50;background:#1d1e22;color:#fff;padding:12px 14px;border-bottom:1px solid #000;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.controls .bar{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.controls h1{font-family:Georgia,'Times New Roman',serif;font-size:19px;margin:0 8px 3px 0;font-weight:600}
+.controls label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:#d7d7da}
+.controls input,.controls textarea{font:inherit;font-size:12px;border:1px solid #55585f;border-radius:5px;padding:6px 7px;background:#fff;color:#222;min-width:122px}
+.controls textarea{height:42px;min-width:210px;resize:vertical}
+.controls button{border:0;border-radius:6px;padding:8px 11px;font-weight:700;cursor:pointer;background:var(--plum);color:#fff}
+.controls button.secondary{background:#4d4f55}.controls button.gold{background:#7b6845}
+.summary{margin-left:auto;font-size:12px;color:#ddd;padding-bottom:8px}
+.preview{padding:18px 0 60px}
+.spread-note{width:min(1700px,96vw);margin:0 auto 6px;font-size:12px;color:#666}
+.spread{display:flex;justify-content:center;align-items:flex-start;gap:10px;margin:0 auto 20px;max-width:1700px}
+.spread.single{gap:0}
+.page{position:relative;background:var(--paper);box-shadow:0 3px 15px rgba(0,0,0,.11);overflow:hidden;color:var(--charcoal);flex:0 0 auto}
+.page.portrait{width:210mm;height:297mm}
+.page.landscape{width:297mm;height:210mm}
+.page.left.portrait{padding:10mm 18mm 10mm 12mm}
+.page.right.portrait{padding:10mm 12mm 10mm 18mm}
+.page.single.portrait{padding:10mm 14mm}
+.page.landscape{padding:10mm 14mm}
+.page::before{content:"";position:absolute;width:13mm;height:13mm;border:.55mm solid rgba(92,44,77,.26);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;top:-6.5mm;pointer-events:none}
+.page::after{content:"";position:absolute;width:8mm;height:8mm;border:.28mm solid rgba(171,138,76,.8);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;top:-3.8mm;pointer-events:none}
+.page.left::before,.page.left::after{left:-6.5mm}.page.left::after{left:-3.8mm}
+.page.right::before,.page.right::after,.page.single::before,.page.single::after,.page.landscape::before,.page.landscape::after{right:-6.5mm}.page.right::after,.page.single::after,.page.landscape::after{right:-3.8mm}
+.deco{position:absolute;bottom:-30mm;width:64mm;height:64mm;border-radius:50%;pointer-events:none;
+  background-image:radial-gradient(circle at 34% 30%,rgba(92,44,77,.15),rgba(92,44,77,0) 62%),radial-gradient(var(--dot) .55px,transparent .6px);
+  background-size:auto,4.4mm 4.4mm;background-repeat:no-repeat,repeat}
+.page.left .deco{left:-24mm}
+.page.right .deco,.page.single .deco,.page.landscape .deco{right:-24mm}
+.page-inner{height:100%;display:flex;flex-direction:column;min-height:0;position:relative;z-index:1}
+.brandfoot{position:absolute;left:0;right:0;bottom:2.6mm;z-index:2;display:flex;align-items:center;justify-content:space-between;font-size:2.15mm;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);pointer-events:none}
+.brandfoot span{display:flex;align-items:center;gap:1.6mm}
+.brandfoot span::before{content:"";width:2.6mm;height:.5mm;background:var(--gold)}
+.brandfoot .motto{color:var(--plum-deep);font-weight:800}
+.brandfoot .motto::after{content:" ♥";color:var(--gold);font-weight:400}
+.header{height:16mm;border-bottom:.35mm solid var(--charcoal);position:relative;display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:2.7mm;flex:0 0 auto}
+.header::after{content:"";position:absolute;left:0;right:0;bottom:-1.15mm;height:.55mm;background:linear-gradient(to right,var(--gold),rgba(171,138,76,0) 55%)}
+.header.compact{height:13mm}
+.kicker{font-size:2.45mm;letter-spacing:.13em;text-transform:uppercase;color:var(--grey);font-weight:800;margin-bottom:1mm;display:flex;align-items:center;gap:1.3mm}
+.kicker::before{content:"";width:1.3mm;height:1.3mm;border-radius:50%;background:var(--gold);flex:0 0 auto}
+.title{font-family:Georgia,'Times New Roman',serif;font-size:7mm;line-height:1;color:var(--black);font-weight:700}
+.title .accent{color:var(--plum)}
+.meta{text-align:right;font-size:3mm;color:var(--grey);line-height:1.45}
+.due{display:inline-block;margin-top:1.4mm;padding:1.1mm 2.6mm;background:var(--plum);border-radius:99mm;color:#fff;font-size:2.55mm;font-weight:800;letter-spacing:.05em}
+.section{margin-top:3mm;flex:0 0 auto;min-height:0}
+.section.grow{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+.section-head{height:5mm;display:flex;align-items:stretch;margin-bottom:1.2mm;flex:0 0 auto}
+.section-head .bar{width:1.4mm;flex:0 0 auto;background:var(--plum);border-radius:.4mm 0 0 .4mm}
+.section-head .tab{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:2mm;background:var(--mauve-tint);border-radius:0 1.3mm 1.3mm 0;padding:0 2.6mm}
+.section-title{font-size:2.85mm;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.section-sub{margin-left:auto;font-size:2.35mm;color:var(--grey);font-weight:600;white-space:nowrap}
+.ruled{border-top:.23mm solid var(--line)}
+.row{height:9.5mm;border-bottom:.23mm solid var(--line);display:grid;align-items:center;font-size:3.05mm}
+.row.roomy{height:10.5mm}
+.row.tall{height:18mm;align-items:start;padding-top:2mm}
+.row>*{padding:0 1mm}
+.studentrow>*,.contactrow>*,.sentrow>*,.daygrid .row>*,.hos-row>*,.hos-head>*{border-right:.2mm solid var(--stone-line)}
+.studentrow>*:last-child,.contactrow>*:last-child,.sentrow>*:last-child,.daygrid .row>*:last-child,.hos-row>*:last-child,.hos-head>*:last-child{border-right:none}
+.checkbox{width:3.6mm;height:3.6mm;border:.35mm solid var(--charcoal);border-radius:.6mm;margin-left:.6mm;background:var(--paper)}
+.taskrow{grid-template-columns:6mm 1fr}
+.studentrow{grid-template-columns:6mm 38mm 1fr}
+.contactrow{grid-template-columns:6mm 45mm 1fr}
+.sentrow{grid-template-columns:6mm 37mm 1fr}
+.table-head{height:7mm;display:grid;align-items:center;background:var(--stone);border-top:.23mm solid var(--line);border-bottom:.34mm solid var(--line-dark);font-size:2.5mm;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--charcoal)}
+.table-head>*{padding:0 1mm}
+.daygrid .row{grid-template-columns:27mm 1fr;height:13mm}
+.dayname{font-size:2.8mm;text-transform:uppercase;letter-spacing:.055em;font-weight:800;color:var(--plum-deep)}
+.dotgrid{border:.23mm solid var(--line);border-radius:1mm;background-image:radial-gradient(circle,var(--dot) .52px,transparent .56px);background-size:5mm 5mm;flex:1 1 auto;min-height:0}
+.lines-fill{border-top:.23mm solid var(--line);flex:1 1 auto;min-height:0;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(9.5mm - .23mm),var(--line) calc(9.5mm - .23mm),var(--line) 9.5mm)}
+.fieldline{height:9.5mm;border-bottom:.23mm solid var(--line);display:grid;grid-template-columns:31mm 1fr;align-items:center;font-size:3mm}
+.fieldlabel{font-size:2.55mm;text-transform:uppercase;letter-spacing:.055em;font-weight:800;color:var(--grey)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+.top-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 7mm;border-top:.23mm solid var(--line)}
+.top-fields .fieldline{grid-template-columns:25mm 1fr}
+.mini-reminder{height:7.5mm;border-top:.23mm solid var(--line);border-bottom:.23mm solid var(--line);display:flex;align-items:center;gap:2mm;font-size:2.95mm;font-weight:800;color:var(--plum-deep)}
+.status-strip{height:8mm;border-top:.32mm solid var(--charcoal);display:flex;align-items:center;gap:8mm;font-size:2.85mm;font-weight:700;flex:0 0 auto;margin-top:auto}
+.status-item{display:flex;align-items:center;gap:1.8mm}
+.small-check{width:3.4mm;height:3.4mm;border:.35mm solid var(--charcoal);border-radius:.6mm}
+.inbox-card,.interaction-card{height:128mm;border-top:.34mm solid var(--charcoal);padding-top:2.4mm;display:flex;flex-direction:column;min-height:0}
+.card-gap{height:4mm;flex:0 0 auto}
+.card-label{font-size:2.65mm;text-transform:uppercase;letter-spacing:.06em;font-weight:800;color:var(--charcoal);margin:2mm 0 1.2mm}
+.card-status{height:7mm;display:flex;align-items:center;gap:6mm;font-size:2.75mm}
+.card-status span{display:flex;gap:1.4mm;align-items:center}
+.month-checks{display:grid;grid-template-columns:1fr 1fr;column-gap:6mm;border-top:.23mm solid var(--line)}
+.month-checks .row:last-child:nth-child(odd){grid-column:1 / span 2}
+.metric-strip{display:grid;grid-template-columns:1.25fr .75fr .75fr;gap:4mm;margin-top:3mm}
+.metric{height:10mm;border-bottom:.3mm solid var(--line-dark);display:flex;align-items:center;gap:2mm;font-size:2.8mm}
+.metric b{font-size:2.45mm;text-transform:uppercase;letter-spacing:.05em;color:var(--grey)}
+.hos-head,.hos-row{display:grid;grid-template-columns:26mm 52mm 78mm 60mm 23mm}
+.hos-row{height:18mm;border-bottom:.23mm solid var(--line);font-size:2.8mm;align-items:start;padding-top:1.7mm}
+.hos-row>*{padding:0 1mm}
+.balance-note{font-size:2.65mm;color:var(--grey);margin-top:2mm}
+.hidden-page{display:none!important}
+@media screen and (max-width:1300px){.spread{transform:scale(.72);transform-origin:top center;margin-bottom:-75mm}.controls{position:relative}}
+@media screen and (max-width:850px){.spread{transform:scale(.48);margin-bottom:-142mm}}
+@media print{
+  html,body{background:#fff}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .controls,.spread-note{display:none!important}
+  .preview{padding:0}
+  .spread{display:contents!important;transform:none!important;margin:0!important}
+  .page{box-shadow:none;margin:0;break-after:page;page-break-after:always}
+  .page.portrait{page:portrait}
+  .page.landscape{page:landscape}
+  @page portrait{size:A4 portrait;margin:0}
+  @page landscape{size:A4 landscape;margin:0}
+}
+</style>
+</head>
+<body>
+<div class="controls">
+  <div class="bar">
+    <h1>Welfare Planner Generator v2</h1>
+    <label>Planner title<input id="plannerTitle" value="Welfare Term Planner"></label>
+    <label>Period label<input id="periodLabel" value="Term 4 / End of Year 2026"></label>
+    <label>Work start<input id="workStart" type="date" value="2026-09-21"></label>
+    <label>Final work date<input id="workEnd" type="date" value="2026-12-18"></label>
+    <label>Student start<input id="studentStart" type="date" value="2026-10-05"></label>
+    <label>Student end<input id="studentEnd" type="date" value="2026-12-04"></label>
+    <label>Non-work dates<input id="excluded" value="2026-10-05" title="Comma separated YYYY-MM-DD"></label>
+    <label>Inbox matters<input id="inboxCap" type="number" min="2" step="2" value="20"></label>
+    <label>Staff interactions<input id="staffCap" type="number" min="2" value="30"></label>
+    <label>Programs / themes<textarea id="programs">Term 4 Welfare Program</textarea></label>
+    <label>Footer tagline<input id="footerTagline" value="Small Steps · Bigger Futures"></label>
+    <label>Brand line<input id="brandMotto" value="Plan With Purpose"></label>
+    <button id="generate">Generate</button>
+    <button id="print" class="gold">Print / Save PDF</button>
+    <button id="toggle" class="secondary">Show first 12 pages</button>
+    <div id="summary" class="summary"></div>
+  </div>
+</div>
+<div id="preview" class="preview"></div>
+<script>
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const parseDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d,12)};
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const inRange=(d,a,b)=>d>=a&&d<=b;
+const isWeekday=d=>d.getDay()>=1&&d.getDay()<=5;
+const mondayOf=d=>addDays(d,-((d.getDay()+6)%7));
+const dayName=d=>d.toLocaleDateString('en-AU',{weekday:'long'});
+const monthName=d=>d.toLocaleDateString('en-AU',{month:'long',year:'numeric'});
+const fmtDate=d=>d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+const fmtShort=d=>d.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+const firstMonday=(y,m)=>{let d=new Date(y,m,1,12);while(d.getDay()!==1)d=addDays(d,1);return d};
+let pages=[],showAll=true;
+let footerCfg={tagline:'',motto:''};
+const escHtml=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function cfg(){return{
+  title:$('#plannerTitle').value.trim()||'Welfare Term Planner',period:$('#periodLabel').value.trim(),
+  workStart:parseDate($('#workStart').value),workEnd:parseDate($('#workEnd').value),studentStart:parseDate($('#studentStart').value),studentEnd:parseDate($('#studentEnd').value),
+  excluded:new Set($('#excluded').value.split(',').map(x=>x.trim()).filter(Boolean)),
+  inboxCap:Math.max(2,+$('#inboxCap').value||20),staffCap:Math.max(2,+$('#staffCap').value||30),programs:$('#programs').value.split('\n').map(x=>x.trim()).filter(Boolean),
+  footerTagline:$('#footerTagline').value.trim(),brandMotto:$('#brandMotto').value.trim()
+}}
+function workday(d,c){return isWeekday(d)&&inRange(d,c.workStart,c.workEnd)&&!c.excluded.has(iso(d))}
+function studentDay(d,c){return workday(d,c)&&inRange(d,c.studentStart,c.studentEnd)}
+function weekKind(mon,c){let anyWork=false,anyStudent=false;for(let i=0;i<5;i++){const d=addDays(mon,i);if(workday(d,c))anyWork=true;if(studentDay(d,c))anyStudent=true}return anyStudent?'student':anyWork?'nonstudent':'none'}
+function dueText(d){const due=firstMonday(d.getFullYear(),d.getMonth());if(iso(d)!==iso(due))return'';const prev=new Date(d.getFullYear(),d.getMonth()-1,1,12);return `MONTHLY REPORT DUE — ${prev.toLocaleDateString('en-AU',{month:'long'}).toUpperCase()}`}
+function header(title,meta='',kicker='',compact=false,due=''){return `<div class="header ${compact?'compact':''}"><div><div class="kicker">${kicker}</div><div class="title">${title}</div>${due?`<div class="due">${due}</div>`:''}</div><div class="meta">${meta}</div></div>`}
+function sec(title,body,sub='',grow=false){return `<section class="section ${grow?'grow':''}"><div class="section-head"><span class="bar"></span><span class="tab"><span class="section-title">${title}</span>${sub?`<span class="section-sub">${sub}</span>`:''}</span></div>${body}</section>`}
+function taskRows(n,style=false){const cls=style==='tall'?'tall':(style?'roomy':'');return `<div class="ruled">${Array.from({length:n},()=>`<div class="row taskrow ${cls}"><span class="checkbox"></span><span></span></div>`).join('')}</div>`}
+function structured(n,cls,heads,roomy=false){return `<div class="table-head ${cls}">${heads.map(h=>`<div>${h}</div>`).join('')}</div><div class="ruled">${Array.from({length:n},()=>`<div class="row ${cls} ${roomy?'roomy':''}"><span class="checkbox"></span>${heads.slice(1).map(()=>'<span></span>').join('')}</div>`).join('')}</div>`}
+function plainLines(n,roomy=false){return `<div class="ruled">${Array.from({length:n},()=>`<div class="row ${roomy?'roomy':''}"><span></span></div>`).join('')}</div>`}
+function pageChrome(html){return `<div class="page-inner">${html}</div><div class="deco" aria-hidden="true"></div><div class="brandfoot" aria-hidden="true"><span class="tag">${escHtml(footerCfg.tagline)}</span><span class="motto">${escHtml(footerCfg.motto)}</span></div>`}
+function page(html,orientation='portrait',side='single',label=''){pages.push({html:pageChrome(html),orientation,side,label})}
+function spread(left,right,label=''){left.side='left';right.side='right';left.label=label;pages.push(left,right)}
+function makePage(html,orientation='portrait'){return{html:pageChrome(html),orientation,side:'single',label:''}}
+function opening(c){
+  const l=makePage(`${header('Carryover <span class="accent">/ Starting Point</span>',c.period,'Planner opening')}${sec('Open student matters',taskRows(6))}${sec('Open Welfare Inbox matters',taskRows(5))}${sec('Admin / documentation outstanding',taskRows(5))}${sec('Commitments / anything to pick up',taskRows(6))}`);
+  const r=makePage(`${header('Term / Period <span class="accent">Overview</span>',`${fmtDate(c.workStart)}<br>to ${fmtDate(c.workEnd)}`,'Planner opening')}${sec('Student term dates',`<div class="top-fields"><div class="fieldline"><span class="fieldlabel">Start</span><b>${fmtDate(c.studentStart)}</b></div><div class="fieldline"><span class="fieldlabel">End</span><b>${fmtDate(c.studentEnd)}</b></div></div>`)}${sec('Non-student work periods',plainLines(3))}${sec('Key dates / events',plainLines(5))}${sec('Important deadlines / report dates',plainLines(4))}${sec('Welfare program blocks',plainLines(3))}${sec('Notes',`<div class="dotgrid"></div>`,'',true)}`);
+  spread(l,r,'Opening / Carryover');
+}
+function weeklyOverview(mon,w,c){const days=Array.from({length:5},(_,i)=>addDays(mon,i)),fri=days[4];
+ const dayRows=`<div class="daygrid ruled">${days.map(d=>{let note='';if(c.excluded.has(iso(d)))note='Public holiday / non-work day';const due=dueText(d);if(due)note+=(note?' · ':'')+due;return `<div class="row"><span class="dayname">${dayName(d)}</span><span>${note}</span></div>`}).join('')}</div>`;
+ const l=makePage(`${header('Weekly <span class="accent">Overview</span>',`Week ${w}<br>${fmtShort(mon)} – ${fmtShort(fri)}`,'Student week')}${sec('Key Dates & Meetings',dayRows)}${sec('Carry Over',taskRows(5))}${sec('General Tasks',taskRows(11))}`);
+ const r=makePage(`${header('This Week <span class="accent">— Welfare</span>',`Week ${w}`,'Weekly welfare view',true)}${sec('Students Needing Follow-Up',structured(5,'studentrow',['','Student','What needs to happen'],true),'max 5')}${sec('Welfare Inbox — Needs Attention',structured(4,'studentrow',['','Matter / Student','What needs attention'],true))}${sec('Notes',`<div class="dotgrid"></div>`,'',true)}`);
+ spread(l,r,`Student Week ${w} — Weekly Overview`);
+}
+function daily(d,w,c){const due=dueText(d);
+ const l=makePage(`${header(dayName(d).toUpperCase(),`Week ${w}<br>${fmtDate(d)}`,'Today',false,due)}${sec('Appointments / Meetings',`<div class="table-head" style="grid-template-columns:24mm 1fr"><div>Time</div><div>Details / Purpose</div></div><div class="ruled">${Array.from({length:3},()=>`<div class="row roomy" style="grid-template-columns:24mm 1fr"><span></span><span></span></div>`).join('')}</div>`,'2–3 max')}${sec('Students to Follow Up',structured(5,'studentrow',['','Student','What I need to do'],true),'max 5')}${sec('Calls / Emails / Messages',structured(5,'contactrow',['','Contact / Student','Purpose']))}${sec('Tasks / Admin',taskRows(7))}<div class="status-strip"><span class="status-item"><span class="small-check"></span>Everything completed</span><span class="status-item"><span class="small-check"></span>Incomplete tasks moved to Friday backlog</span></div>`);
+ const r=makePage(`${header('Welfare <span class="accent">Operations</span>',`${dayName(d)}<br>Week ${w}`,'Daily operations',true)}${sec('Life Skills GO / Check-In Flags',structured(5,'studentrow',['','Student','Flag / note']))}${sec('Sentral — To Write Up',structured(6,'sentrow',['','Student','What to write / key points']))}<section class="section"><div class="mini-reminder"><span class="small-check"></span>Update Student Tracker</div></section>${sec('Notes / Overflow',`<div class="dotgrid"></div>`,'',true)}`);
+ spread(l,r,`${dayName(d)} ${fmtDate(d)} — Today / Welfare Operations`);
+}
+function friday(d,w){
+ const l=makePage(`${header('Friday <span class="accent">— Backlog / Catch-Up</span>',`Week ${w}<br>${fmtDate(d)}`,'Documentation / student work',false,dueText(d))}${sec('Sentral Backlog',structured(8,'sentrow',['','Student','What needs writing']))}${sec('Referrals / Forms / Documentation',taskRows(7))}${sec('Student Summaries / Plans',taskRows(7))}`);
+ const r=makePage(`${header('Friday <span class="accent">— Follow Through</span>',`Week ${w}`,'Week clearance',true)}${sec('Parent / Carer + External Service Contact',structured(4,'contactrow',['','Person / Student','Contact / purpose']))}${sec('Welfare Inbox Processing',structured(4,'studentrow',['','Matter / Student','What needs doing']))}${sec('Staff / Admin',taskRows(4))}${sec('Unfinished Tasks From This Week',taskRows(7))}${sec('Notes / Overflow',`<div class="dotgrid"></div>`,'',true)}`);
+ spread(l,r,`Friday ${fmtDate(d)} — Backlog / Catch-Up`);
+}
+function weeklyClosure(w){
+ const left=makePage(`${header('Weekly Sentral <span class="accent">Review</span>',`Week ${w}`,'Read all staff Sentral entries')}${sec('Review Table',`<div class="table-head" style="grid-template-columns:32mm 58mm 1fr 13mm"><div>Student</div><div>Relevant information found</div><div>Welfare action / reminder</div><div>Done</div></div><div class="ruled">${Array.from({length:13},()=>`<div class="row tall" style="grid-template-columns:32mm 58mm 1fr 13mm"><span></span><span></span><span></span><span class="checkbox" style="margin:1mm auto 0"></span></div>`).join('')}</div>`)}`);
+ const right=makePage(`${header('Weekly <span class="accent">Closure</span>',`Week ${w}`,'Close the week',true)}${sec('Student Matters Continuing',taskRows(5,true))}${sec('Welfare Inbox Matters Continuing',taskRows(5,true))}${sec('Outstanding Admin / Documentation',taskRows(5,true))}${sec('Carry Forward to Next Week',taskRows(6,true))}<div class="status-strip"><span class="status-item"><span class="small-check"></span>Week reviewed</span><span class="status-item"><span class="small-check"></span>Completed items closed</span></div>`);
+ spread(left,right,`Week ${w} — Weekly Sentral Review / Closure`);
+}
+function nonStudentDay(d){return makePage(`${header(dayName(d).toUpperCase(),fmtDate(d),'Non-student work day',false,dueText(d))}${sec('Meetings / Appointments',plainLines(2))}${sec('General Tasks',taskRows(6))}${sec('Calls / Emails',taskRows(3))}${sec('Admin / Paperwork',taskRows(3))}${sec('Project Work',taskRows(3))}${sec('Notes',`<div class="dotgrid"></div>`,'',true)}<div class="status-strip"><span class="status-item"><span class="small-check"></span>Everything completed</span><span class="status-item"><span class="small-check"></span>Incomplete tasks moved to Friday backlog</span></div>`)}
+function nonStudentWeek(mon,c){
+ const ds=Array.from({length:4},(_,i)=>addDays(mon,i)).filter(d=>workday(d,c));
+ for(let i=0;i<ds.length;i+=2){const a=nonStudentDay(ds[i]);const b=ds[i+1]?nonStudentDay(ds[i+1]):makePage(`${header('General <span class="accent">Work Notes</span>','','Non-student work week',true)}${sec('Notes / Overflow',`<div class="dotgrid"></div>`,'',true)}`);spread(a,b,`Non-student work week — ${fmtShort(mon)} – ${fmtShort(addDays(mon,4))}`)}
+ const fri=addDays(mon,4);if(workday(fri,c)){
+  const l=makePage(`${header('FRIDAY',fmtDate(fri),'Non-student catch-up',false,dueText(fri))}${sec('Outstanding Tasks',taskRows(8))}${sec('Documentation / Admin Catch-Up',taskRows(7))}${sec('Project Work',taskRows(7))}`);
+  const r=makePage(`${header('FRIDAY <span class="accent">— CONTINUED</span>',fmtDate(fri),'Non-student catch-up',true)}${sec('Welfare Program Prep',taskRows(6))}${sec('Emails / Calls / Follow-Up',taskRows(5))}${sec('Next-Term / Upcoming Work Prep',taskRows(6))}${sec('Notes / Overflow',`<div class="dotgrid"></div>`,'',true)}`);
+  spread(l,r,`Non-student Friday — ${fmtDate(fri)}`)
+ }
+ const n1=makePage(`${header('General <span class="accent">Notes</span>',`${fmtShort(mon)} – ${fmtShort(addDays(mon,4))}`,'After Friday',true)}${sec('Planning / Project Notes',`<div class="dotgrid"></div>`,'',true)}`);
+ const n2=makePage(`${header('General <span class="accent">Notes</span>',`${fmtShort(mon)} – ${fmtShort(addDays(mon,4))}`,'After Friday',true)}${sec('Ideas / Lists / Next-Term Prep',`<div class="dotgrid"></div>`,'',true)}`);
+ spread(n1,n2,'General Notes — Non-student work week');
+}
+function inboxCard(){return `<div class="inbox-card"><div class="fieldline"><span class="fieldlabel">Date</span><span></span></div><div class="fieldline"><span class="fieldlabel">Student / Matter</span><span></span></div><div class="fieldline" style="height:19mm"><span class="fieldlabel">Information / Concern</span><span></span></div><div class="fieldline" style="height:19mm"><span class="fieldlabel">What Needs to Happen</span><span></span></div><div class="card-label">Updates / Progress</div><div class="dotgrid"></div><div class="card-status"><span><i class="small-check"></i>Open</span><span><i class="small-check"></i>Closed</span><span><i class="small-check"></i>Carry Forward</span></div></div>`}
+function welfareInbox(c){let pageCount=Math.ceil(c.inboxCap/2);if(pageCount%2)pageCount++;for(let p=0;p<pageCount;p++){const num1=p*2+1,num2=p*2+2;page(`${header('Welfare <span class="accent">Inbox</span>',`Matters ${num1}–${num2}`,'Running matters',true)}${inboxCard()}<div class="card-gap"></div>${inboxCard()}`,'portrait','single',`Welfare Inbox — page ${p+1}`)}}
+function interactionCard(){return `<div class="interaction-card"><div class="top-fields"><div class="fieldline"><span class="fieldlabel">Date</span><span></span></div><div class="fieldline"><span class="fieldlabel">Staff</span><span></span></div></div><div class="fieldline"><span class="fieldlabel">Student / Topic</span><span></span></div><div class="card-label">Conversation / Interaction Notes</div>${plainLines(9)}</div>`}
+function staffInteractions(c){let pageCount=Math.ceil(c.staffCap/2);if(pageCount%2)pageCount++;for(let p=0;p<pageCount;p++)page(`${header('Staff <span class="accent">Interactions</span>',`Interactions ${p*2+1}–${p*2+2}`,'Conversation log',true)}${interactionCard()}<div class="card-gap"></div>${interactionCard()}`,'portrait','single',`Staff Interactions — page ${p+1}`)}
+function staffMeeting(count){let n=count;if(n%2)n++;for(let i=1;i<=n;i++)page(`${header('Staff <span class="accent">Meeting</span>',i<=count?`Week ${i}`:'Extra undated page','Weekly meeting',true)}<div class="top-fields" style="grid-template-columns:1fr"><div class="fieldline"><span class="fieldlabel">Date</span><span></span></div></div>${sec('Agenda Items',taskRows(4,'tall'))}${sec('Welfare — Things to Bring to Staff Attention',taskRows(4,'tall'))}${sec('Notes',`<div class="dotgrid"></div>`,'',true)}`,'portrait','single',`Staff Meeting ${i}`)}
+function managerMeeting(count){let n=count;if(n%2)n++;for(let i=1;i<=n;i++)page(`${header('Manager <span class="accent">Catch-Up</span>',i<=count?`Working week ${i}`:'Extra undated page','Weekly catch-up',true)}<div class="top-fields" style="grid-template-columns:1fr"><div class="fieldline"><span class="fieldlabel">Date</span><span></span></div></div>${sec('Things to Discuss',taskRows(4,'tall'))}${sec('Discussion / Notes',`<div class="dotgrid"></div>`,'',true)}${sec('Decisions / Actions',taskRows(3))}`,'portrait','single',`Manager Catch-Up ${i}`)}
+function hosMeeting(count){let n=count;if(n%2)n++;for(let i=1;i<=n;i++)page(`${header('HOS / <span class="accent">Welfare</span>',i<=count?`Week ${i}`:'Extra undated page','Student discussions',true)}<div class="metric-strip"><div class="metric"><b>Date</b><span>________________</span></div><div class="metric"><b>EOI tally</b><span>______</span></div><div class="metric"><b>Capacity</b><span>______</span></div></div>${sec('Student Discussions / Agreed Next Steps',`<div class="table-head hos-head"><div>Student</div><div>Update / What Needs Discussing</div><div>Discussion / Decision</div><div>Next Step / Task</div><div>Who</div></div><div class="ruled">${Array.from({length:8},()=>`<div class="hos-row"><span></span><span></span><span></span><span></span><span></span></div>`).join('')}</div>`)}`,'landscape','single',`HOS / Welfare ${i}`)}
+function monthsCovered(c){const out=[];let d=new Date(c.workStart.getFullYear(),c.workStart.getMonth(),1,12),end=new Date(c.workEnd.getFullYear(),c.workEnd.getMonth(),1,12);while(d<=end){out.push(new Date(d));d=new Date(d.getFullYear(),d.getMonth()+1,1,12)}return out}
+function nswMeetings(months){months.forEach(m=>page(`${header('NSW Monthly <span class="accent">Meeting</span>',monthName(m),'Undated monthly meeting',true)}<div class="top-fields" style="grid-template-columns:1fr"><div class="fieldline"><span class="fieldlabel">Date</span><span></span></div></div>${sec('Good News Story',plainLines(3))}${sec('Welfare Program',plainLines(4))}${sec('Agenda Items',taskRows(3,'tall'))}${sec('Reminders',taskRows(3))}${sec('Notes',`<div class="dotgrid"></div>`,'',true)}`,'portrait','single',`NSW Monthly Meeting — ${monthName(m)}`))}
+function monthlyReviews(months){months.forEach(m=>page(`${header('Monthly Review <span class="accent">/ Report Prep</span>',monthName(m),'Monthly welfare review',true)}${sec('Monthly Checks',`<div class="month-checks">${['Month’s Sentral notes reviewed','Follow-up actions checked','Open Welfare Inbox matters reviewed','Excel student tracker checked','Monthly report completed / submitted'].map(x=>`<div class="row taskrow"><span class="checkbox"></span><span>${x}</span></div>`).join('')}</div>`)}${sec('Key Presenting Issues / Trends',plainLines(6))}${sec('Welfare Program Notes',plainLines(4))}<div class="twocol">${sec('Major Wins',plainLines(4))}${sec('Key Challenges',plainLines(4))}</div>${sec('Recommendations / Improvements',`<div class="dotgrid"></div>`,'',true)}`,'portrait','single',`Monthly Review — ${monthName(m)}`))}
+function programPlanning(programs){(programs.length?programs:['Welfare Program']).forEach((name,i)=>{
+ const l=makePage(`${header('Welfare Program <span class="accent">Planning</span>',`Block ${i+1}`,'Term → Theme / Program → Activities')}<div class="top-fields"><div class="fieldline"><span class="fieldlabel">Term</span><span></span></div><div class="fieldline"><span class="fieldlabel">Approx timing</span><span></span></div></div><div class="fieldline"><span class="fieldlabel">Theme / Program</span><b>${name}</b></div>${sec('Purpose / Intended Outcome',plainLines(3))}${sec('Activities',plainLines(5))}${sec('Year Level / Group',plainLines(2))}${sec('Resources',plainLines(3))}<div class="twocol">${sec('To Make / Design',taskRows(3))}${sec('To Print / Laminate',taskRows(3))}</div>${sec('To Buy / Source',taskRows(3))}`);
+ const r=makePage(`${header('Welfare Program <span class="accent">Delivery / Review</span>',name,'Program block',true)}<div class="twocol">${sec('What Is Ready',taskRows(3))}${sec('What Still Needs Doing',taskRows(3))}</div>${sec('People / Rooms / Equipment',plainLines(2))}${sec('Delivery Notes',`<div class="dotgrid" style="min-height:50mm"></div>`)}${sec('Student Response / Feedback',plainLines(2))}<div class="twocol">${sec('What Worked',plainLines(2))}${sec('What to Change',plainLines(2))}</div>${sec('Resources Worth Keeping / Reusing',taskRows(2))}`);
+ spread(l,r,`Welfare Program Planning — ${name}`)
+ })}
+function nextReportDueAfter(c){const m=new Date(c.workEnd.getFullYear(),c.workEnd.getMonth()+1,1,12);const due=firstMonday(m.getFullYear(),m.getMonth());const reportMonth=new Date(m.getFullYear(),m.getMonth()-1,1,12);return `${reportMonth.toLocaleDateString('en-AU',{month:'long'})} monthly report due ${due.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}`}
+function handover(c){const l=makePage(`${header('Carry <span class="accent">Forward</span>',c.period,'End-of-period')}${sec('Open Welfare Inbox Matters',taskRows(4))}${sec('Students Needing Follow-Up',taskRows(4))}${sec('Outstanding Admin / Documentation',taskRows(4))}${sec('Booked / Committed',taskRows(3))}${sec('Anything Continuing',taskRows(4))}`);
+ const r=makePage(`${header('Handover <span class="accent">/ Reset Notes</span>',c.period,'End-of-period',true)}${sec('Context for Next Planner / Work Period',plainLines(5))}${sec('Welfare Program Items',taskRows(3))}${sec('Reporting / Meeting Reminders',`<div class="ruled"><div class="row"><span>${nextReportDueAfter(c)}</span></div>${Array.from({length:2},()=>'<div class="row"><span></span></div>').join('')}</div>`)}${sec('Work Still Needing Completion',taskRows(3))}${sec('General Handover Notes',`<div class="dotgrid"></div>`,'',true)}`);
+ spread(l,r,'End-of-Period / Handover')}
+function render(){const root=$('#preview');root.innerHTML='';let visibleCount=0;for(let i=0;i<pages.length;){const p=pages[i];const note=document.createElement('div');note.className='spread-note';note.textContent=p.label||'';root.appendChild(note);const wrap=document.createElement('div');wrap.className='spread';if(p.orientation==='portrait'&&p.side==='left'&&pages[i+1]&&pages[i+1].orientation==='portrait'&&pages[i+1].side==='right'){
+  [p,pages[i+1]].forEach(x=>{const el=document.createElement('div');el.className=`page ${x.orientation} ${x.side}`;el.innerHTML=x.html;wrap.appendChild(el);visibleCount++;if(!showAll&&visibleCount>12)el.classList.add('hidden-page')});i+=2
+ }else{wrap.classList.add('single');const el=document.createElement('div');el.className=`page ${p.orientation} single`;el.innerHTML=p.html;wrap.appendChild(el);visibleCount++;if(!showAll&&visibleCount>12)el.classList.add('hidden-page');i++}
+ root.appendChild(wrap)}
+ $('#summary').textContent=`${pages.length} pages generated`}
+function generate(){const c=cfg();footerCfg={tagline:c.footerTagline,motto:c.brandMotto};pages=[];opening(c);let mon=mondayOf(c.workStart),studentWeeks=0,workingWeeks=0;while(mon<=c.workEnd){const kind=weekKind(mon,c);if(kind!=='none')workingWeeks++;if(kind==='student'){studentWeeks++;weeklyOverview(mon,studentWeeks,c);for(let i=0;i<4;i++){const d=addDays(mon,i);if(studentDay(d,c))daily(d,studentWeeks,c)}const fri=addDays(mon,4);if(studentDay(fri,c))friday(fri,studentWeeks);weeklyClosure(studentWeeks)}else if(kind==='nonstudent')nonStudentWeek(mon,c);mon=addDays(mon,7)}
+ welfareInbox(c);staffInteractions(c);staffMeeting(studentWeeks);managerMeeting(workingWeeks);hosMeeting(studentWeeks);const months=monthsCovered(c);nswMeetings(months);monthlyReviews(months);programPlanning(c.programs);handover(c);render();$('#summary').textContent=`${pages.length} pages · ${studentWeeks} student weeks · ${workingWeeks} working weeks`}
+$('#generate').addEventListener('click',generate);$('#print').addEventListener('click',()=>window.print());$('#toggle').addEventListener('click',()=>{showAll=!showAll;$('#toggle').textContent=showAll?'Show first 12 pages':'Show all pages';render()});generate();
+</script>
+</body>
+</html>
