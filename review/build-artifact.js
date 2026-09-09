@@ -91,13 +91,20 @@ async function encodeAssets() {
   const commit = require('child_process')
     .execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim();
 
-  const shell = read('review/artifact-shell.html');
-  const html = shell
-    .replace('"__PLANNER_CSS__"', JSON.stringify(read('monday/planner.css')))
-    .replace('"__PLANNER_JS__"', JSON.stringify(read('monday/monday.js')))
-    .replace('"__SPREAD_HTML__"', JSON.stringify(markup))
-    .replace('"__BUILT_FROM__"', JSON.stringify(
-      `${commit} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`));
+  // Function replacements throughout: a string replacement would treat $& and
+  // friends in the planner's own source as substitution patterns.
+  const put = (s, token, value) => {
+    if (!s.includes(token)) throw new Error('placeholder missing: ' + token);
+    return s.replace(token, () => value);
+  };
+
+  let html = read('review/artifact-shell.html');
+  html = put(html, '"__PLANNER_CSS__"', JSON.stringify(read('monday/planner.css')));
+  html = put(html, '"__SPREAD_HTML__"', JSON.stringify(markup));
+  html = put(html, '"__BUILT_FROM__"', JSON.stringify(
+    `${commit} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`));
+  // monday.js goes in as source, inside the runPlanner() wrapper.
+  html = put(html, '/*__PLANNER_JS__*/', read('monday/monday.js'));
 
   fs.writeFileSync(OUT, html);
   console.log(`\nwrote ${path.relative(ROOT, OUT)}  (${(html.length/1048576).toFixed(2)} MB)`);

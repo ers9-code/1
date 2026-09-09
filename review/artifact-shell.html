@@ -81,7 +81,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 }
 .stage{position:absolute; top:0; left:0; transform-origin:0 0;}
 .stage iframe{border:0; display:block; background:#fff;}
-.ov{position:absolute; inset:0;}
+/* The overlay is what fingers actually touch, so it is the element that has to
+   claim the gesture — without this the browser treats a drag as a page scroll
+   and stops sending move events partway through. */
+.ov{position:absolute; inset:0; touch-action:none;}
 .selbox{position:absolute; border:2px solid var(--accent); border-radius:2px;
   background:color-mix(in srgb, var(--accent) 8%, transparent);}
 .pin{
@@ -235,9 +238,18 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
    markup, same planner.css, same monday.js, same artwork. Rebuild after
    changing any of them. */
 const PLANNER_CSS = "__PLANNER_CSS__";
-const PLANNER_JS  = "__PLANNER_JS__";
 const SPREAD_HTML = "__SPREAD_HTML__";
 const BUILT_FROM  = "__BUILT_FROM__";
+
+/* monday.js, verbatim, wrapped in a function whose `document` and `window`
+   parameters shadow the globals — so the planner's own code runs against the
+   embedded spread's document while executing here, in a script the page
+   already got to run. The alternative, an inline <script> inside the embedded
+   document, is exactly the kind of thing a content policy refuses, and when it
+   is refused the spread never builds and nothing on the page appears to work. */
+function runPlanner(document, window){
+/*__PLANNER_JS__*/
+}
 
 const PX = 96 / 25.4;
 const mm = px => +(px / PX).toFixed(1);
@@ -267,7 +279,7 @@ attachFonts(document);
 frame.srcdoc =
   '<!doctype html><html lang="en-AU"><head><meta charset="utf-8">' +
   '<style>' + PLANNER_CSS + '</style></head><body>' + SPREAD_HTML +
-  '<' + 'script>' + PLANNER_JS + '</' + 'script></body></html>';
+  '</body></html>';
 
 /* ------------------------------------------------------------- registry */
 const SHORT = {
@@ -537,6 +549,23 @@ ov.addEventListener('pointerup', e => {
 });
 ov.addEventListener('pointercancel', e => { pts.delete(e.pointerId); gesture = null; });
 
+/* A plain tap, as a fallback. Some mobile browsers cancel a pointer sequence
+   mid-gesture, which would swallow the selection; click still arrives. */
+ov.addEventListener('click', e => {
+  if (gesture || !items.length) return;
+  const r = ov.getBoundingClientRect();
+  const x = (e.clientX - r.left)/scale, y = (e.clientY - r.top)/scale;
+  if (mode === 'note'){
+    const at = pageAt(x,y);
+    if (at) startNote(at, hit(x,y));
+    return;
+  }
+  const target = hit(x,y);
+  if (target && (!sel || sel.key !== target.key)){
+    sel = target; draw(); render(); openSheet();
+  }
+});
+
 /* ------------------------------------------------------------------ sheet */
 const sheet = $('#sheet'), body = $('#body');
 const openSheet = () => { sheet.classList.remove('peek'); };
@@ -704,9 +733,15 @@ function renderNotes(){
 
 function renderCheck(){
   body.replaceChildren();
-  let problems = [];
-  try { problems = win.assertNoPageOverflow(); } catch(e){}
   const lines = [];
+  if (!win || typeof win.assertNoPageOverflow !== 'function'){
+    body.innerHTML = '<div class="check"><div class="bad">The spread has not ' +
+      'finished building, so the checks cannot run.</div>' +
+      '<p class="built">Built from ' + BUILT_FROM + '</p></div>';
+    return;
+  }
+  let problems = [];
+  try { problems = win.assertNoPageOverflow(); } catch(e){ problems = ['Checks failed: '+e.message]; }
   const art = [...doc.querySelectorAll('#page2 .decor img')];
   let gap = Infinity;
   doc.querySelectorAll('#notesRows .note-line').forEach(l => {
@@ -809,9 +844,15 @@ let waited = 0;
 const poll = setInterval(() => {
   const d = frame.contentDocument;
   waited += 200;
-  if (d && d.querySelector('#sentralRows tr')){
+  if (d && d.body && d.querySelector('.spread')){
     clearInterval(poll);
     attachFonts(d);
+    try {
+      runPlanner(d, frame.contentWindow);   // builds the rows, fits the washes
+    } catch (err) {
+      $('#boot').textContent = 'The spread could not be built: ' + err.message;
+      return;
+    }
     const ready = Promise.all([
       d.fonts ? d.fonts.ready : Promise.resolve(),
       ...[...d.images].map(i => i.complete ? Promise.resolve()
