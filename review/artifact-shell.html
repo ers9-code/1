@@ -249,7 +249,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
       <button class="icon" id="zoomIn" aria-label="Zoom in">+</button>
       <button class="icon" id="zoomFit">Fit</button>
     </span>
-    <span class="hintline">Tap a heading, wash or the artwork to select it</span>
+    <span class="hintline">Drag the title, a wash or the artwork to move it &middot; drag blank paper to pan &middot; <span id="build"></span></span>
   </div>
 </header>
 
@@ -313,6 +313,8 @@ function attachFonts(d){
   d.head.appendChild(l);
 }
 attachFonts(document);
+const buildEl = document.getElementById('build');
+if (buildEl) buildEl.textContent = 'build ' + BUILT_FROM.split(' ')[0];
 
 frame.srcdoc =
   '<!doctype html><html lang="en-AU"><head><meta charset="utf-8">' +
@@ -330,7 +332,8 @@ const CONTROLS = {
   wash:['dx','dy','width','height','opacity'],
   art:['dx','dy','width','rotate','opacity'],
   rule:['dx','dy','width','height','opacity'],
-  block:['dx','dy','opacity']
+  block:['dx','dy','opacity'],
+  artgroup:['dx','dy','size']
 };
 const SPEC = {
   dx:{label:'Move across', unit:'mm', step:.5, min:-60, max:60},
@@ -340,24 +343,30 @@ const SPEC = {
   rotate:{label:'Rotate', unit:'°', step:5, min:-180, max:180},
   opacity:{label:'Opacity', unit:'', step:.05, min:0, max:1},
   fontSize:{label:'Font size', unit:'mm', step:.1, min:1, max:40},
-  letterSpacing:{label:'Letter spacing', unit:'em', step:.005, min:-.05, max:.4}
+  letterSpacing:{label:'Letter spacing', unit:'em', step:.005, min:-.05, max:.4},
+  size:{label:'Size', unit:'x', step:.05, min:.4, max:1.6}
 };
+
+/* Which offsets an element is actually anchored by. Computed style reports
+   used pixels for all four, which would make a right-anchored layer look
+   left-anchored; the Typed OM keeps `auto`. */
+function anchorsOf(el){
+  const cs = win.getComputedStyle(el);
+  try {
+    const m = el.computedStyleMap();
+    const auto = p => String(m.get(p)) === 'auto';
+    return { left:!auto('left'), right:!auto('right'),
+             top:!auto('top'), bottom:!auto('bottom') };
+  } catch (e) {
+    return { left:cs.left!=='auto', right:cs.right!=='auto',
+             top:cs.top!=='auto', bottom:cs.bottom!=='auto' };
+  }
+}
 
 function add(list, key, name, el, kind){
   if (!el) return;
   const cs = win.getComputedStyle(el);
-  let anchors = null;
-  if (cs.position === 'absolute') {
-    try {
-      const m = el.computedStyleMap();
-      const auto = p => String(m.get(p)) === 'auto';
-      anchors = { left:!auto('left'), right:!auto('right'),
-                  top:!auto('top'), bottom:!auto('bottom') };
-    } catch (e) {
-      anchors = { left:cs.left!=='auto', right:cs.right!=='auto',
-                  top:cs.top!=='auto', bottom:cs.bottom!=='auto' };
-    }
-  }
+  const anchors = cs.position === 'absolute' ? anchorsOf(el) : null;
   list.push({ key, name, el, kind, anchors,
     style0: el.getAttribute('style') || '',
     baseTransform: cs.transform === 'none' ? '' : cs.transform,
@@ -389,9 +398,29 @@ function buildRegistry(){
     });
   });
   add(L,'p2.notes','Notes area', q('#notesRows'),'block');
-  add(L,'p2.art.bracket','Artwork — bracket', q('#page2 .art-bracket'),'art');
-  add(L,'p2.art.strata','Artwork — dark strata', q('#page2 .art-strata'),'art');
-  add(L,'p2.art.speckle','Artwork — gold speckle', q('#page2 .art-speckle'),'art');
+
+  /* The corner painting is three stacked layers. Registering them separately
+     meant a drag picked up whichever was smallest under the cursor — usually
+     the near-invisible gold speckle — so the painting appeared not to move at
+     all. They are one thing to a reader, so they are one thing here: the
+     bracket stands for the group and every layer takes the same move. */
+  const artEls = ['.art-bracket','.art-strata','.art-speckle']
+    .map(s => q('#page2 ' + s)).filter(Boolean);
+  if (artEls.length){
+    const cs0 = win.getComputedStyle(artEls[0]);
+    L.push({
+      key:'p2.art', name:'Bottom-right artwork', el:artEls[0], kind:'artgroup',
+      anchors:null, baseTransform:'', style0:'',
+      members: artEls.map(el => {
+        const cs = win.getComputedStyle(el);
+        return { el, anchors:anchorsOf(el), style0: el.getAttribute('style') || '',
+          base:{ left:cs.left, right:cs.right, top:cs.top, bottom:cs.bottom,
+                 width:parseFloat(cs.width) } };
+      }),
+      base:{ width:parseFloat(cs0.width), height:parseFloat(cs0.height),
+             opacity:parseFloat(cs0.opacity), fontSize:1, letterSpacing:0 }
+    });
+  }
   return L;
 }
 
@@ -399,6 +428,7 @@ function buildRegistry(){
 function baseValue(item, p){
   const b = item.base;
   if (p==='dx'||p==='dy'||p==='rotate') return 0;
+  if (p==='size') return 1;
   if (p==='width') return mm(b.width);
   if (p==='height') return mm(b.height);
   if (p==='opacity') return +b.opacity.toFixed(2);
@@ -420,9 +450,25 @@ function setValue(item, p, v){
 }
 
 function applyOne(item){
+  const v = state.overrides[item.key];
+
+  if (item.kind === 'artgroup'){
+    item.members.forEach(m => m.el.setAttribute('style', m.style0));
+    if (!v || showOriginal) return;
+    const gx = v.dx || 0, gy = v.dy || 0, size = v.size || 1;
+    item.members.forEach(m => {
+      const a = m.anchors, b = m.base;
+      if (gx) a.right && !a.left ? m.el.style.right = (mm(parseFloat(b.right)) - gx)+'mm'
+                                 : m.el.style.left  = (mm(parseFloat(b.left))  + gx)+'mm';
+      if (gy) a.bottom && !a.top ? m.el.style.bottom = (mm(parseFloat(b.bottom)) - gy)+'mm'
+                                 : m.el.style.top    = (mm(parseFloat(b.top))    + gy)+'mm';
+      if (size !== 1) m.el.style.width = (mm(b.width) * size).toFixed(1)+'mm';
+    });
+    return;
+  }
+
   const el = item.el;
   el.setAttribute('style', item.style0);
-  const v = state.overrides[item.key];
   if (!v || showOriginal) return;
   const dx = v.dx || 0, dy = v.dy || 0;
   if (dx || dy){
@@ -555,12 +601,25 @@ ov.addEventListener('pointerdown', e => {
   }
   const p = local(e);
   if (mode === 'note'){ gesture = { type:'note', p }; return; }
+  // Press on something and you are moving it, immediately. Requiring a
+  // separate click to select first meant the first drag always panned the
+  // page instead, which reads as "it won't let me move anything".
   const target = hit(p.x, p.y);
-  if (target && sel && target.key === sel.key && CONTROLS[sel.kind]){
-    gesture = { type:'drag', item:sel, p, dx0:valueOf(sel,'dx'), dy0:valueOf(sel,'dy'), moved:false };
+  if (target && CONTROLS[target.kind]){
+    if (!sel || sel.key !== target.key){ sel = target; draw(); render(); openSheet(); }
+    gesture = { type:'drag', item:target, p,
+                dx0:valueOf(target,'dx'), dy0:valueOf(target,'dy'), moved:false };
   } else {
     gesture = { type:'pan', x:e.clientX, y:e.clientY, tx0:tx, ty0:ty, target, moved:false };
   }
+});
+
+/* With a mouse, show what will happen before the button goes down. */
+ov.addEventListener('pointermove', e => {
+  if (gesture || e.pointerType !== 'mouse' || !items.length) return;
+  const r = ov.getBoundingClientRect();
+  const t = hit((e.clientX - r.left)/scale, (e.clientY - r.top)/scale);
+  ov.style.cursor = mode === 'note' ? 'crosshair' : (t ? 'move' : 'grab');
 });
 
 ov.addEventListener('pointermove', e => {
@@ -594,10 +653,12 @@ ov.addEventListener('pointermove', e => {
   }
 });
 
+let handledAt = 0;
 ov.addEventListener('pointerup', e => {
   pts.delete(e.pointerId);
   const g = gesture;
   if (pts.size === 0) gesture = null;
+  handledAt = Date.now();
   if (!g) return;
   if (g.type === 'note'){
     const at = pageAt(g.p.x, g.p.y);
@@ -623,6 +684,7 @@ ov.addEventListener('wheel', e => {
    mid-gesture, which would swallow the selection; click still arrives. */
 ov.addEventListener('click', e => {
   if (gesture || !items.length) return;
+  if (Date.now() - handledAt < 600) return;   // the pointer sequence already dealt with it
   const r = ov.getBoundingClientRect();
   const x = (e.clientX - r.left)/scale, y = (e.clientY - r.top)/scale;
   if (mode === 'note'){
