@@ -205,7 +205,7 @@ function fitHeadingWashes() {
    with the fade left as a tail rather than the wash petering out mid-word;
    TITLE_CENTRE places the painted band through the middle-to-lower part of
    the lettering instead of across its optical centre. */
-const TITLE_LEAD_MM = 10, TITLE_BODY_FRAC = 0.80, TITLE_H_FRAC = 0.44,
+const TITLE_LEAD_MM = 12, TITLE_BODY_FRAC = 0.84, TITLE_H_FRAC = 0.50,
       TITLE_CENTRE = 0.58;
 function fitTitleWash() {
   const PX = 96 / 25.4;
@@ -396,6 +396,7 @@ window.addEventListener("load", () => {
 window.assertNoPageOverflow = assertNoPageOverflow;
 window.fitHeadingWashes = fitHeadingWashes;
 window.fitTitleWash = fitTitleWash;
+window.inkProfileFor = inkProfile;
 window.inkReport = inkReport;
 window.fitNotesToArtwork = fitNotesToArtwork;
 window.inkSpanIn = inkSpanIn;

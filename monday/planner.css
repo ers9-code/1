@@ -55,6 +55,9 @@
 /* Page 1 carries fewer rows than page 2, so its sections take the slack as
    breathing room rather than leaving it all at the foot of the page. */
 .page.left{--section-gap:5.9mm;}
+/* Page 2 is the dense side — Notes runs to the foot of the sheet, so its
+   section gaps stay tight to buy ruled lines. */
+.page.right{--section-gap:3.4mm;}
 
 .page-inner{
   position:relative;
@@ -93,30 +96,55 @@
 .decor.art-br{right:0; bottom:0; width:0; height:0;}
 .art-br img{position:absolute;}
 
+/* Geometry chosen by measurement, not by eye: Notes width first, artwork
+   second. Shifting the composition alone bought writing width only by
+   pushing a third of the painting off the sheet; drawing it slightly smaller
+   as well as lower-right buys more — the top two Notes rules come back to
+   full width and 99% of the paint stays on the page. */
 .art-br .art-strata{
-  width:112mm; right:2mm; bottom:6mm;
+  width:92mm; right:2mm; bottom:2mm;
   mix-blend-mode:multiply;
   filter:contrast(1.12) brightness(.92) saturate(.9);
   opacity:.92;
 }
-/* Same size as the approved pass, shifted up and left as a whole composition
-   so the rich part of the artwork reaches up alongside Notes / Overflow
-   instead of piling up beside End of Day. Its mass sits at the canvas
-   top-left, so it is rotated 180deg to hug a bottom-right corner. */
+/* Its mass sits at the canvas top-left, so it is rotated 180deg to hug a
+   bottom-right corner. This layer is the one that reaches furthest into the
+   writing area, so it carries most of the reduction. */
 .art-br .art-bracket{
-  width:124mm; right:0; bottom:2mm;
+  width:98mm; right:-4mm; bottom:-4mm;
   transform:rotate(180deg);
 }
 .art-br .art-speckle{
-  width:60mm; right:2mm; bottom:4mm;
+  width:50mm; right:2mm; bottom:0;
   mix-blend-mode:multiply;
   opacity:.5;
 }
 
-/* Page 1 carries no corner artwork: see the note in index.html. */
+/* ---------- page 1: title-area accent -----------------------------------
+   The counterweight to page 2, deliberately much smaller and quieter. The
+   wedge master rotated 180deg puts its dark pigment along the top and outer
+   edges — both of those are cut edges in the artwork itself, meant for
+   bleeding — so seating them on the page trim reads as a deliberate bleed.
+   It sits in the band opened by the title inset, arching over the start of
+   the word, and its paint stops well short of the title column (checked per
+   scanline by the overlap QA). Absolutely positioned: no vertical room taken
+   from the sections, nothing near the inner gutter. */
+.decor.art-tl{top:0; left:-6mm; width:76mm;}
+.decor.art-tl img{
+  transform:rotate(180deg);
+  filter:contrast(1.06) brightness(.96) saturate(.94);
+  opacity:.85;
+}
 
-/* ---------- main page heading (§4) — page 1 of a spread only -------------- */
-.main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;}
+/* ---------- main page heading (§4) — page 1 of a spread only --------------
+   The title block is inset from the page's left axis. That inset is what
+   makes a title-area accent possible at all: nothing may cross into the
+   title column, so with the word on the 14mm axis an outer-edge accent had
+   only the margin to live in and could only ever read as a clipped sliver.
+   Insetting the word opens a composed band at the outer edge for it, and
+   costs no writing space — every table, the rule and the sections stay on
+   the page axis. */
+.main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;margin-left:16mm;}
 /* Stronger than a section wash, but faded so the word dominates the title
    area rather than the watercolour. The pigment is light (measured mean
    luminance 205) and 88% opaque, so fading reads as translucent rather than
@@ -128,7 +156,7 @@
    pulled the wash low). The values here are the pre-measurement default. */
 .main-title-wash{
   position:absolute;
-  left:-6mm;
+  left:-12mm;
   top:0;
   width:100mm;
   height:42mm;
@@ -169,22 +197,39 @@
   flex:0 0 auto;
   display:flex;
   justify-content:space-between;
-  align-items:baseline;
+  align-items:flex-end;
   gap:6mm;
   text-transform:uppercase;
 }
 .page2-meta .p2-ref{
   font-size:2.9mm;
   font-weight:400;
+  line-height:1;
   letter-spacing:.09em;
   color:var(--warm-grey);
 }
-.page2-meta .p2-date{
+/* Two-level reference: a quiet label over the date it names, so the date is
+   unmistakably the page identifier without becoming a heading. */
+.p2-date-block{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:1mm;
+  text-align:right;
+}
+.p2-date-block .p2-label{
+  font-size:2.3mm;
+  font-weight:400;
+  line-height:1;
+  letter-spacing:.22em;
+  color:var(--mauve);
+}
+.p2-date-block .p2-date{
   font-size:4.1mm;
   font-weight:500;
+  line-height:1;
   letter-spacing:.04em;
   color:var(--charcoal);
-  text-align:right;
   white-space:nowrap;
 }
 .page2-meta .sep{color:var(--mauve);padding:0 .6mm;}
@@ -197,7 +242,7 @@
 .gold-rule{
   flex:0 0 auto;
   height:.35mm;
-  margin:2.4mm 0 0;
+  margin:2mm 0 0;
   border-radius:.2mm;
   background:var(--gold);
   opacity:.9;

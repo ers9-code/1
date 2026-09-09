@@ -16,12 +16,16 @@
   <!-- ================= PAGE 1 — large day heading lives here only (§4) ===== -->
   <section class="page left" id="page1">
 
-    <!-- No corner accent on page 1. Nothing may cross into the title column
-         (x=14mm) below the title's top edge, so an outer-edge accent could
-         only ever be a sliver in the 13mm margin and read as a clipped scrap
-         next to the word. The title area gets its painterly presence from the
-         title wash instead, which now carries the full width of MONDAY.
-         Writing space was never traded for it either way. -->
+    <!-- Title-area accent: the spread's counterweight, much smaller and
+         quieter than page 2's composition. The wedge master is rotated 180deg
+         so its dark pigment runs along the top and outer edges and thins away
+         downward; data-flip tells the QA to mirror the measured silhouette to
+         match. It lives in the band opened by the title inset, clear of the
+         title column and of the inner binding gutter, and takes no writing
+         space. No crop, no auto-trim. -->
+    <div class="decor art-tl">
+      <img src="../assets/decorative/png/corner_top_left.png" data-flip="xy" alt="">
+    </div>
 
     <div class="page-inner">
 
@@ -112,7 +116,10 @@
         <span class="p2-ref">
           <span data-bind="weekday"></span><span class="sep">·</span><span data-bind="term"></span><span class="sep">·</span>WEEK <span data-bind="week"></span>
         </span>
-        <span class="p2-date" data-bind="date-long"></span>
+        <span class="p2-date-block">
+          <span class="p2-label">Date</span>
+          <span class="p2-date" data-bind="date-long"></span>
+        </span>
       </header>
       <div class="gold-rule"></div>
 
