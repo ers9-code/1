@@ -1,0 +1,114 @@
+/* Styling for the review tool only. Nothing here reaches the planner —
+   the spread lives in an iframe and keeps its own stylesheet. */
+
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{
+  font:13px/1.45 ui-sans-serif,system-ui,'Segoe UI',Roboto,sans-serif;
+  color:#2b2830; background:#e9e5e2; display:flex; flex-direction:column;
+}
+
+/* ---------- top bar ---------- */
+.bar{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  padding:8px 14px; background:#fffcf9; border-bottom:1px solid #d8d2d5;
+}
+.brand{font-weight:650; letter-spacing:.02em;}
+.brand em{font-style:normal; font-weight:400; color:#8b8489;}
+.group{display:flex; align-items:center; gap:4px;}
+.spacer{flex:1;}
+button{
+  font:inherit; padding:4px 10px; border:1px solid #cdc6ca; border-radius:5px;
+  background:#fff; color:#2b2830; cursor:pointer;
+}
+button:hover{background:#f4eff1;}
+button.on{background:#4a263e; border-color:#4a263e; color:#fff;}
+button.warn:hover{background:#fdecec; border-color:#d99;}
+.chk{display:flex; align-items:center; gap:5px; color:#5a545a; white-space:nowrap;}
+#zoomLabel{min-width:44px; text-align:center; color:#5a545a; font-variant-numeric:tabular-nums;}
+
+/* ---------- layout ---------- */
+main{flex:1; display:flex; min-height:0;}
+.canvas{
+  flex:1; overflow:auto; position:relative;
+  display:flex; align-items:flex-start; justify-content:center; padding:24px;
+}
+.stage{position:relative; transform-origin:0 0;}
+#frame{border:0; display:block; background:#e9e5e2;}
+/* The overlay takes every pointer event: selection, dragging and pins are all
+   handled here so the planner's own DOM is never touched. Nothing inside the
+   spread is interactive, so nothing is lost by covering it. */
+.overlay{position:absolute; inset:0; pointer-events:auto;}
+.hint{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#8b8489;}
+
+/* ---------- selection + pins (drawn over the iframe, never inside it) ---- */
+.sel-box{
+  position:absolute; border:1.5px solid #4a263e; background:rgba(74,38,62,.07);
+  pointer-events:none;
+}
+.sel-tag{
+  position:absolute; transform:translateY(-100%);
+  background:#4a263e; color:#fff; font-size:11px; padding:1px 6px;
+  border-radius:3px 3px 0 0; white-space:nowrap;
+}
+.hover-box{position:absolute; border:1px dashed #a48292; pointer-events:none;}
+.pin{
+  position:absolute; width:20px; height:20px; margin:-10px 0 0 -10px;
+  border-radius:50%; background:#c49a58; color:#fff; border:1.5px solid #fff;
+  font-size:11px; font-weight:700; line-height:17px; text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.35); pointer-events:auto; cursor:pointer;
+}
+.pin.active{background:#4a263e;}
+.stage .overlay{cursor:default;}
+.stage.annotate .overlay{cursor:crosshair;}
+
+/* ---------- side panel ---------- */
+.panel{
+  width:330px; flex:0 0 330px; overflow:auto;
+  background:#fffcf9; border-left:1px solid #d8d2d5;
+}
+.pane{padding:12px 14px; border-bottom:1px solid #ece7e9;}
+.pane h2{margin:0 0 8px; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#8b8489;}
+.muted{color:#8b8489; margin:0;}
+.count,.dot{
+  float:right; font-size:11px; background:#efe9ec; color:#5a545a;
+  border-radius:9px; padding:0 7px;
+}
+.dot.ok{background:#e2f0e4; color:#2f6b3a;}
+.dot.bad{background:#fbe4e4; color:#9b2c2c;}
+
+.tree{max-height:230px; overflow:auto; margin:-2px -4px;}
+.tree .grp{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#a49ba1; padding:7px 4px 2px;}
+.tree button{
+  display:block; width:100%; text-align:left; border:0; background:none;
+  padding:3px 6px; border-radius:4px; color:#2b2830;
+}
+.tree button:hover{background:#f2ecef;}
+.tree button.on{background:#4a263e; color:#fff;}
+.tree button.edited::after{content:' •'; color:#c49a58;}
+
+.selName{margin:0 0 8px; font-weight:650;}
+.geo{width:100%; border-collapse:collapse; margin-bottom:10px; font-variant-numeric:tabular-nums;}
+.geo td{padding:1px 0; color:#5a545a;}
+.geo td:last-child{text-align:right; color:#2b2830;}
+
+.ctl{display:flex; align-items:center; gap:8px; margin:5px 0;}
+.ctl label{flex:0 0 92px; color:#5a545a;}
+.ctl input[type=range]{flex:1; min-width:0;}
+.ctl input[type=number]{
+  width:74px; font:inherit; padding:2px 5px; border:1px solid #cdc6ca; border-radius:4px;
+  font-variant-numeric:tabular-nums;
+}
+.ctl .unit{color:#a49ba1; width:22px;}
+
+.pins{margin:0; padding-left:20px;}
+.pins li{margin:4px 0; cursor:pointer;}
+.pins li .where{color:#a49ba1; font-size:11px;}
+.pins li button{padding:0 5px; margin-left:4px;}
+
+.qa div{margin:2px 0;}
+.qa .bad{color:#9b2c2c;}
+.out{
+  max-height:220px; overflow:auto; white-space:pre-wrap; word-break:break-word;
+  font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; margin:0;
+}

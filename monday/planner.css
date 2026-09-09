@@ -35,6 +35,8 @@
   --shell-gap:1.2mm;
   --section-gap:4mm;
   --rule:.18mm;
+  --strip-w:1.1mm;    /* left accent strip on structured sections */
+  --strip-op:.55;
 }
 
 /* ---------- page geometry (§22) — physical size, never transform-scaled ---- */
@@ -305,9 +307,9 @@
   content:"";
   position:absolute;
   left:0; top:0; bottom:0;
-  width:1.1mm;
+  width:var(--strip-w);
   background:var(--mauve);
-  opacity:.55;
+  opacity:var(--strip-op);
 }
 table{width:100%;border-collapse:collapse;table-layout:fixed;}
 /* Quieter than the section heading: lighter weight, smaller, less tracking.
@@ -339,8 +341,8 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
 /* ---------- checklist (§7.5) -------------------------------------------- */
 .list-shell{position:relative;padding-left:2.6mm;margin-top:var(--shell-gap);}
 .list-shell::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:1.1mm;
-  background:var(--mauve);opacity:.55;
+  content:"";position:absolute;left:0;top:0;bottom:0;width:var(--strip-w);
+  background:var(--mauve);opacity:var(--strip-op);
 }
 .check-row{
   height:var(--row-h);
@@ -362,8 +364,8 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
 /* ---------- notes / overflow (§14) — shaped to hug the corner art -------- */
 .notes-shell{position:relative;padding-left:2.6mm;margin-top:var(--shell-gap);}
 .notes-shell::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:1.1mm;
-  background:var(--mauve);opacity:.55;
+  content:"";position:absolute;left:0;top:0;bottom:0;width:var(--strip-w);
+  background:var(--mauve);opacity:var(--strip-op);
 }
 /* Only slightly more open than a structured row — it is the page's free
    writing area, not a different rhythm. */

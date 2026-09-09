@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monday — visual review</title>
+<link rel="stylesheet" href="review.css">
+</head>
+<body>
+
+<header class="bar">
+  <span class="brand">Monday <em>visual review</em></span>
+
+  <span class="group" role="group" aria-label="Mode">
+    <button data-mode="select" class="on">Select</button>
+    <button data-mode="annotate">Annotate</button>
+  </span>
+
+  <span class="group" role="group" aria-label="View">
+    <button data-view="spread" class="on">Spread</button>
+    <button data-view="page1">Page 1</button>
+    <button data-view="page2">Page 2</button>
+  </span>
+
+  <span class="group" role="group" aria-label="Zoom">
+    <button data-zoom="fit">Fit</button>
+    <button data-zoom="1">100%</button>
+    <button data-zoom="out">−</button>
+    <span id="zoomLabel">100%</span>
+    <button data-zoom="in">+</button>
+  </span>
+
+  <span class="group">
+    <label class="chk"><input type="checkbox" id="snap"> Snap 0.5mm</label>
+    <label class="chk"><input type="checkbox" id="showOriginal"> Show original</label>
+  </span>
+
+  <span class="spacer"></span>
+
+  <span class="group">
+    <button id="save">Save review</button>
+    <button id="apply">Apply approved changes</button>
+    <button id="resetSel">Reset selected</button>
+    <button id="resetAll" class="warn">Reset all</button>
+  </span>
+</header>
+
+<main>
+  <section class="canvas" id="canvas">
+    <div class="stage" id="stage">
+      <iframe id="frame" src="../monday/index.html" title="Monday spread"></iframe>
+      <div class="overlay" id="overlay"></div>
+    </div>
+    <p class="hint" id="bootHint">Loading the real Monday spread…</p>
+  </section>
+
+  <aside class="panel">
+    <div class="pane">
+      <h2>Elements</h2>
+      <div id="tree" class="tree"></div>
+    </div>
+
+    <div class="pane" id="inspector">
+      <h2>Inspector</h2>
+      <p class="muted" id="noSel">Click an element on the spread, or pick one from the list.</p>
+      <div id="selBody" hidden>
+        <p class="selName" id="selName"></p>
+        <table class="geo" id="geo"></table>
+        <div id="controls"></div>
+      </div>
+    </div>
+
+    <div class="pane">
+      <h2>Notes <span class="count" id="pinCount">0</span></h2>
+      <p class="muted" id="pinHint">Switch to Annotate, then click anywhere on a page to drop a pin.</p>
+      <ol class="pins" id="pins"></ol>
+    </div>
+
+    <div class="pane">
+      <h2>Print QA <span class="dot" id="qaDot"></span></h2>
+      <div id="qa" class="qa muted">—</div>
+    </div>
+
+    <div class="pane">
+      <h2>Output</h2>
+      <pre id="out" class="out muted">Nothing yet.</pre>
+    </div>
+  </aside>
+</main>
+
+<script src="review.js"></script>
+</body>
+</html>
