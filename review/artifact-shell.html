@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<title>Monday Planner Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- The webfonts are attached from script, not linked here: a stylesheet still
+     loading blocks every script on the page, so a slow or unreachable font host
+     would leave the tool sitting at "loading" instead of working in the
+     fallback faces. -->
+<style>
+/* Palette taken from the planner it reviews — the shell is a warm neutral
+   biased toward the plum so the pages read truly against it. The pages
+   themselves stay paper white in both themes: they are print artefacts. */
+:root{
+  --shell:#F1ECEA; --surface:#FFFFFF; --sunk:#E7E0DE;
+  --ink:#2B2830; --muted:#7B747B; --line:#DFD8DB;
+  --accent:#4A263E; --accent-ink:#FFFFFF; --gold:#C49A58;
+  --ok:#2F6B3A; --bad:#9B2C2C;
+  --sans:'Source Sans 3',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --tap:44px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --shell:#1E1B20; --surface:#292529; --sunk:#151317;
+    --ink:#EFEAEC; --muted:#A79EA5; --line:#3A353B;
+    --accent:#D0A8BE; --accent-ink:#221A20; --gold:#D6B075;
+    --ok:#8FCB9B; --bad:#F0989A;
+  }
+}
+:root[data-theme="dark"]{
+  --shell:#1E1B20; --surface:#292529; --sunk:#151317;
+  --ink:#EFEAEC; --muted:#A79EA5; --line:#3A353B;
+  --accent:#D0A8BE; --accent-ink:#221A20; --gold:#D6B075;
+  --ok:#8FCB9B; --bad:#F0989A;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;margin:0;overscroll-behavior:none;}
+body{
+  background:var(--shell); color:var(--ink); font-family:var(--sans);
+  font-size:15px; line-height:1.45; display:flex; flex-direction:column;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+
+/* ---------- app bar ---------- */
+.bar{
+  flex:0 0 auto; background:var(--surface); border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.bar-top{display:flex; align-items:baseline; gap:8px;}
+.wordmark{font-family:var(--serif); font-size:22px; letter-spacing:.01em;}
+.sub{font-size:12px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase;}
+.status{margin-left:auto; font-size:12px; color:var(--muted);}
+.status.saved{color:var(--ok);}
+.bar-row{display:flex; gap:8px; align-items:center;}
+.seg{
+  display:flex; background:var(--sunk); border-radius:9px; padding:2px; gap:2px; flex:1;
+}
+.seg button{
+  flex:1; min-height:36px; border-radius:7px; font-size:13px; font-weight:500;
+  color:var(--muted);
+}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink);
+  box-shadow:0 1px 2px rgba(0,0,0,.12);}
+.icon{
+  min-width:var(--tap); min-height:36px; border:1px solid var(--line);
+  border-radius:9px; font-size:13px; padding:0 10px; color:var(--muted);
+}
+.icon[aria-pressed="true"]{background:var(--accent); border-color:var(--accent);
+  color:var(--accent-ink);}
+
+/* ---------- stage ---------- */
+.viewport{
+  flex:1; position:relative; overflow:hidden; background:var(--sunk);
+  touch-action:none;
+}
+.stage{position:absolute; top:0; left:0; transform-origin:0 0;}
+.stage iframe{border:0; display:block; background:#fff;}
+.ov{position:absolute; inset:0;}
+.selbox{position:absolute; border:2px solid var(--accent); border-radius:2px;
+  background:color-mix(in srgb, var(--accent) 8%, transparent);}
+.pin{
+  position:absolute; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%;
+  background:var(--gold); color:#241a0d; border:2px solid #fff; font-weight:600;
+  font-size:13px; line-height:22px; text-align:center;
+  box-shadow:0 1px 5px rgba(0,0,0,.4);
+}
+.pin.on{background:var(--accent); color:var(--accent-ink);}
+.boot{
+  position:absolute; inset:0; display:grid; place-items:center; text-align:center;
+  color:var(--muted); padding:24px; font-size:14px;
+}
+
+/* ---------- bottom sheet ---------- */
+/* The sheet floats over the spread rather than sharing the column with it, so
+   opening it never resizes the stage and shoves the pages out of view. */
+.sheet{
+  position:fixed; left:0; right:0; bottom:0; z-index:5;
+  background:var(--surface); border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0; box-shadow:0 -2px 14px rgba(0,0,0,.10);
+  display:flex; flex-direction:column; max-height:50vh;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.sheet.full{max-height:84vh;}
+.grip{
+  padding:8px 0 4px; display:flex; justify-content:center; touch-action:none;
+}
+.grip span{width:40px; height:4px; border-radius:2px; background:var(--line);}
+.tabs{display:flex; gap:4px; padding:0 12px 8px; border-bottom:1px solid var(--line);}
+.tabs button{
+  flex:1; min-height:36px; border-radius:8px; font-size:13px; font-weight:500;
+  color:var(--muted);
+}
+.tabs button[aria-pressed="true"]{background:var(--sunk); color:var(--ink);}
+.tabs .n{font-variant-numeric:tabular-nums; opacity:.7;}
+.body{overflow:auto; -webkit-overflow-scrolling:touch; padding:12px 12px 16px;}
+.sheet.peek .body{display:none;}
+.sheet.peek .tabs{border-bottom:0;}
+
+/* ---------- element pane ---------- */
+.who{display:flex; align-items:baseline; gap:8px; margin-bottom:10px;}
+.who h2{margin:0; font-size:16px; font-weight:600;}
+.who .kind{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em;}
+.readout{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:12px;
+}
+.readout div{background:var(--surface); padding:7px 8px;}
+.readout dt{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+.readout dd{margin:1px 0 0; font-variant-numeric:tabular-nums; font-size:15px;}
+.stepper{
+  display:flex; align-items:center; gap:8px; padding:6px 0;
+  border-bottom:1px solid var(--line);
+}
+.stepper:last-child{border-bottom:0;}
+.stepper .lab{flex:1; font-size:14px;}
+.stepper .lab small{display:block; color:var(--muted); font-size:11px;}
+.stepper button{
+  width:var(--tap); height:var(--tap); border:1px solid var(--line); border-radius:10px;
+  font-size:20px; line-height:1; background:var(--surface);
+}
+.stepper button:active{background:var(--sunk);}
+.stepper output{
+  min-width:66px; text-align:center; font-variant-numeric:tabular-nums; font-size:15px;
+}
+.stepper output.changed{color:var(--accent); font-weight:600;}
+.rowbtns{display:flex; gap:8px; margin-top:12px;}
+.rowbtns button{
+  flex:1; min-height:var(--tap); border:1px solid var(--line); border-radius:10px;
+  font-size:14px;
+}
+.rowbtns button.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
+.empty{color:var(--muted); font-size:14px; margin:6px 0 0;}
+
+/* ---------- notes pane ---------- */
+.notes{list-style:none; margin:0 0 12px; padding:0; display:flex; flex-direction:column; gap:8px;}
+.notes li{
+  display:flex; gap:10px; align-items:flex-start; padding:10px;
+  background:var(--sunk); border-radius:10px;
+}
+.notes .num{
+  flex:0 0 24px; height:24px; border-radius:50%; background:var(--gold); color:#241a0d;
+  font-size:12px; font-weight:600; text-align:center; line-height:24px;
+}
+.notes .txt{flex:1;}
+.notes .meta{display:block; font-size:11px; color:var(--muted); margin-top:2px;
+  font-variant-numeric:tabular-nums;}
+.notes .del{flex:0 0 auto; width:32px; height:32px; color:var(--muted); font-size:18px;}
+.composer{display:flex; gap:8px;}
+.composer textarea{
+  flex:1; font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:10px;
+  background:var(--surface); color:var(--ink); resize:none; min-height:var(--tap);
+}
+.composer button{
+  min-width:var(--tap); border-radius:10px; background:var(--accent); color:var(--accent-ink);
+  padding:0 14px; font-weight:500;
+}
+
+/* ---------- check pane ---------- */
+.check div{padding:6px 0; border-bottom:1px solid var(--line); font-size:14px;
+  font-variant-numeric:tabular-nums;}
+.check div:last-child{border-bottom:0;}
+.check .bad{color:var(--bad);}
+.check .ok{color:var(--ok);}
+.built{color:var(--muted); font-size:11px; margin-top:10px;}
+@media (prefers-reduced-motion:no-preference){
+  .sheet{transition:max-height .18s ease;}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-top">
+    <span class="wordmark">Monday</span>
+    <span class="sub">review</span>
+    <span class="status" id="status">loading</span>
+  </div>
+  <div class="bar-row">
+    <div class="seg" role="group" aria-label="View">
+      <button data-view="spread" aria-pressed="true">Spread</button>
+      <button data-view="page1" aria-pressed="false">Page 1</button>
+      <button data-view="page2" aria-pressed="false">Page 2</button>
+    </div>
+    <button class="icon" id="modeBtn" aria-pressed="false">Note</button>
+    <button class="icon" id="origBtn" aria-pressed="false">Before</button>
+  </div>
+</header>
+
+<div class="viewport" id="viewport">
+  <div class="stage" id="stage">
+    <iframe id="frame" title="Monday spread"></iframe>
+    <div class="ov" id="ov"></div>
+  </div>
+  <p class="boot" id="boot">Loading the Monday spread…</p>
+</div>
+
+<section class="sheet peek" id="sheet">
+  <div class="grip" id="grip"><span></span></div>
+  <div class="tabs" role="group" aria-label="Panel">
+    <button data-tab="element" aria-pressed="true">Element</button>
+    <button data-tab="notes" aria-pressed="false">Notes <span class="n" id="noteCount"></span></button>
+    <button data-tab="check" aria-pressed="false">Check <span class="n" id="qaCount"></span></button>
+  </div>
+  <div class="body" id="body"></div>
+</section>
+
+<script>
+/* Generated from the real planner source by review/build-artifact.js — same
+   markup, same planner.css, same monday.js, same artwork. Rebuild after
+   changing any of them. */
+const PLANNER_CSS = "__PLANNER_CSS__";
+const PLANNER_JS  = "__PLANNER_JS__";
+const SPREAD_HTML = "__SPREAD_HTML__";
+const BUILT_FROM  = "__BUILT_FROM__";
+
+const PX = 96 / 25.4;
+const mm = px => +(px / PX).toFixed(1);
+const $ = s => document.querySelector(s);
+
+const frame = $('#frame'), stage = $('#stage'), ov = $('#ov'), viewport = $('#viewport');
+let win, doc, items = [], sel = null, mode = 'select', tab = 'element';
+let scale = 1, tx = 0, ty = 0, showOriginal = false;
+const state = { overrides: {}, notes: [] };
+
+/* ---------------------------------------------------------------- planner */
+const FONT_CSS = 'https://fonts.googleapis.com/css2?family=' +
+  'Cormorant+Garamond:wght@500;600&family=Source+Sans+3:wght@400;500;600&display=swap';
+
+/* Attach the faces from script, to this document and to the spread's. A
+   stylesheet that is still loading blocks script execution, so linking these
+   in the markup would let a slow font host stop the tool from starting.
+   monday.js already re-fits the title and heading washes on
+   document.fonts.ready, so the measured geometry catches up when they land. */
+function attachFonts(d){
+  const l = d.createElement('link');
+  l.rel = 'stylesheet'; l.href = FONT_CSS;
+  d.head.appendChild(l);
+}
+attachFonts(document);
+
+frame.srcdoc =
+  '<!doctype html><html lang="en-AU"><head><meta charset="utf-8">' +
+  '<style>' + PLANNER_CSS + '</style></head><body>' + SPREAD_HTML +
+  '<' + 'script>' + PLANNER_JS + '</' + 'script></body></html>';
+
+/* ------------------------------------------------------------- registry */
+const SHORT = {
+  'Appointments / Meetings':'Appointments', 'Students to Follow Up':'Students',
+  'Life Skills GO':'Life Skills', 'Tasks / Admin':'Tasks', 'Sentrals':'Sentrals',
+  'Calls / Email / Messages':'Calls', 'Notes / Overflow':'Notes'
+};
+const CONTROLS = {
+  text:['dx','dy','fontSize','letterSpacing','opacity'],
+  wash:['dx','dy','width','height','opacity'],
+  art:['dx','dy','width','rotate','opacity'],
+  rule:['dx','dy','width','height','opacity'],
+  block:['dx','dy','opacity']
+};
+const SPEC = {
+  dx:{label:'Move across', unit:'mm', step:.5, min:-60, max:60},
+  dy:{label:'Move down', unit:'mm', step:.5, min:-60, max:60},
+  width:{label:'Width', unit:'mm', step:1, min:5, max:220},
+  height:{label:'Height', unit:'mm', step:1, min:2, max:120},
+  rotate:{label:'Rotate', unit:'°', step:5, min:-180, max:180},
+  opacity:{label:'Opacity', unit:'', step:.05, min:0, max:1},
+  fontSize:{label:'Font size', unit:'mm', step:.1, min:1, max:40},
+  letterSpacing:{label:'Letter spacing', unit:'em', step:.005, min:-.05, max:.4}
+};
+
+function add(list, key, name, el, kind){
+  if (!el) return;
+  const cs = win.getComputedStyle(el);
+  let anchors = null;
+  if (cs.position === 'absolute') {
+    try {
+      const m = el.computedStyleMap();
+      const auto = p => String(m.get(p)) === 'auto';
+      anchors = { left:!auto('left'), right:!auto('right'),
+                  top:!auto('top'), bottom:!auto('bottom') };
+    } catch (e) {
+      anchors = { left:cs.left!=='auto', right:cs.right!=='auto',
+                  top:cs.top!=='auto', bottom:cs.bottom!=='auto' };
+    }
+  }
+  list.push({ key, name, el, kind, anchors,
+    style0: el.getAttribute('style') || '',
+    baseTransform: cs.transform === 'none' ? '' : cs.transform,
+    base:{ left:cs.left, right:cs.right, top:cs.top, bottom:cs.bottom,
+      width:parseFloat(cs.width), height:parseFloat(cs.height),
+      fontSize:parseFloat(cs.fontSize),
+      letterSpacing:cs.letterSpacing==='normal'?0:parseFloat(cs.letterSpacing),
+      opacity:parseFloat(cs.opacity) } });
+}
+
+function buildRegistry(){
+  const L = [], q = s => doc.querySelector(s);
+  add(L,'p1.title','Title — MONDAY', q('#page1 .main-title'),'text');
+  add(L,'p1.titleWash','Title wash', q('#page1 .main-title-wash'),'wash');
+  add(L,'p1.accent','Top-left accent', q('#page1 .decor.art-tl img'),'art');
+  add(L,'p1.meta','Date / term / week', q('#page1 .main-meta'),'text');
+  add(L,'p1.rule','Gold rule (page 1)', q('#page1 .gold-rule'),'rule');
+  add(L,'p2.ref','Day / term / week', q('#page2 .p2-ref'),'text');
+  add(L,'p2.label','DATE label', q('#page2 .p2-label'),'text');
+  add(L,'p2.date','The date', q('#page2 .p2-date'),'text');
+  add(L,'p2.rule','Gold rule (page 2)', q('#page2 .gold-rule'),'rule');
+  ['page1','page2'].forEach(pid => {
+    doc.querySelectorAll('#'+pid+' .section').forEach(sec => {
+      const h2 = sec.querySelector('h2'); if (!h2) return;
+      const s = SHORT[h2.textContent.trim()] || h2.textContent.trim();
+      const slug = s.toLowerCase().replace(/[^a-z]+/g,'');
+      add(L, pid+'.'+slug+'.wash', s+' wash', sec.querySelector('.wash'),'wash');
+      add(L, pid+'.'+slug+'.text', s+' heading', h2,'text');
+    });
+  });
+  add(L,'p2.notes','Notes area', q('#notesRows'),'block');
+  add(L,'p2.art.bracket','Artwork — bracket', q('#page2 .art-bracket'),'art');
+  add(L,'p2.art.strata','Artwork — dark strata', q('#page2 .art-strata'),'art');
+  add(L,'p2.art.speckle','Artwork — gold speckle', q('#page2 .art-speckle'),'art');
+  return L;
+}
+
+/* ------------------------------------------------------------- overrides */
+function baseValue(item, p){
+  const b = item.base;
+  if (p==='dx'||p==='dy'||p==='rotate') return 0;
+  if (p==='width') return mm(b.width);
+  if (p==='height') return mm(b.height);
+  if (p==='opacity') return +b.opacity.toFixed(2);
+  if (p==='fontSize') return mm(b.fontSize);
+  if (p==='letterSpacing') return +(b.letterSpacing / b.fontSize).toFixed(3);
+  return 0;
+}
+const valueOf = (item,p) =>
+  (state.overrides[item.key] && p in state.overrides[item.key]) ?
+    state.overrides[item.key][p] : baseValue(item,p);
+
+function setValue(item, p, v){
+  const spec = SPEC[p];
+  v = Math.min(spec.max, Math.max(spec.min, +v.toFixed(3)));
+  const o = state.overrides[item.key] || (state.overrides[item.key] = {});
+  if (v === baseValue(item,p)) delete o[p]; else o[p] = v;
+  if (!Object.keys(o).length) delete state.overrides[item.key];
+  applyAll(); save();
+}
+
+function applyOne(item){
+  const el = item.el;
+  el.setAttribute('style', item.style0);
+  const v = state.overrides[item.key];
+  if (!v || showOriginal) return;
+  const dx = v.dx || 0, dy = v.dy || 0;
+  if (dx || dy){
+    if (item.anchors){
+      const a = item.anchors, b = item.base;
+      if (dx) a.right && !a.left ? el.style.right = (mm(parseFloat(b.right)) - dx)+'mm'
+                                 : el.style.left  = (mm(parseFloat(b.left))  + dx)+'mm';
+      if (dy) a.bottom && !a.top ? el.style.bottom = (mm(parseFloat(b.bottom)) - dy)+'mm'
+                                 : el.style.top    = (mm(parseFloat(b.top))    + dy)+'mm';
+    } else {
+      el.style.transform = ('translate('+dx+'mm,'+dy+'mm) '+item.baseTransform).trim();
+    }
+  }
+  if (v.rotate){
+    const pre = (dx||dy) && !item.anchors ? 'translate('+dx+'mm,'+dy+'mm) ' : '';
+    el.style.transform = (pre+'rotate('+v.rotate+'deg) '+item.baseTransform).trim();
+  }
+  if ('width' in v) el.style.width = v.width+'mm';
+  if ('height' in v) el.style.height = v.height+'mm';
+  if ('opacity' in v) el.style.opacity = v.opacity;
+  if ('fontSize' in v) el.style.fontSize = v.fontSize+'mm';
+  if ('letterSpacing' in v) el.style.letterSpacing = v.letterSpacing+'em';
+}
+
+function applyAll(){
+  items.forEach(applyOne);
+  try { win.fitNotesToArtwork(4); } catch(e){}
+  draw(); render();
+}
+
+/* ------------------------------------------------------------------ view */
+function setTransform(){
+  stage.style.transform = 'translate('+tx+'px,'+ty+'px) scale('+scale+')';
+}
+let lastView = 'spread', userMoved = false;
+function fitTo(what){
+  lastView = what; userMoved = false;
+  const vp = viewport.getBoundingClientRect();
+  const t = what==='spread' ? doc.querySelector('.spread') : doc.getElementById(what);
+  if (!t) return;
+  const r = t.getBoundingClientRect();
+  // Always reserve the sheet's resting height, whether it is open or not, so
+  // opening and closing it never moves the pages under the reader's thumb.
+  const h = vp.height - Math.min(vp.height * 0.5, 380);
+  scale = Math.min((vp.width-16)/r.width, (h-16)/r.height);
+  tx = (vp.width - r.width*scale)/2 - r.left*scale;
+  ty = (h - r.height*scale)/2 - r.top*scale;
+  setTransform(); draw();
+}
+
+function draw(){
+  ov.replaceChildren();
+  if (sel && !showOriginal){
+    const r = sel.el.getBoundingClientRect();
+    const b = document.createElement('div');
+    b.className = 'selbox';
+    b.style.cssText = 'left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;'+
+      'border-width:'+(2/scale)+'px';
+    ov.appendChild(b);
+  }
+  state.notes.filter(n => n.page).forEach(n => {
+    const p = doc.getElementById('page'+n.page); if (!p) return;
+    const r = p.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = 'pin' + (sel && n.element === sel.name ? ' on' : '');
+    el.textContent = n.n;
+    el.style.cssText = 'left:'+(r.left+n.xMm*PX)+'px;top:'+(r.top+n.yMm*PX)+'px;'+
+      'transform:scale('+(1/scale)+')';
+    ov.appendChild(el);
+  });
+}
+
+function hit(x,y){
+  let best=null, area=Infinity;
+  for (const it of items){
+    const r = it.el.getBoundingClientRect();
+    if (r.width<1||r.height<1) continue;
+    if (x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom){
+      const a=r.width*r.height; if (a<area){best=it;area=a;}
+    }
+  }
+  return best;
+}
+function pageAt(x,y){
+  for (const pid of ['page1','page2']){
+    const r = doc.getElementById(pid).getBoundingClientRect();
+    if (x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)
+      return {page:pid==='page1'?1:2, xMm:mm(x-r.left), yMm:mm(y-r.top)};
+  }
+  return null;
+}
+
+/* --------------------------------------------------------------- gestures */
+const pts = new Map();
+let gesture = null;
+const local = e => {
+  const r = ov.getBoundingClientRect();
+  return { x:(e.clientX-r.left)/scale, y:(e.clientY-r.top)/scale };
+};
+
+ov.addEventListener('pointerdown', e => {
+  ov.setPointerCapture(e.pointerId);
+  pts.set(e.pointerId, e);
+  if (pts.size === 2){
+    const [a,b] = [...pts.values()];
+    gesture = { type:'pinch', d0:Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY),
+      s0:scale, cx:(a.clientX+b.clientX)/2, cy:(a.clientY+b.clientY)/2, tx0:tx, ty0:ty };
+    return;
+  }
+  const p = local(e);
+  if (mode === 'note'){ gesture = { type:'note', p }; return; }
+  const target = hit(p.x, p.y);
+  if (target && sel && target.key === sel.key && CONTROLS[sel.kind]){
+    gesture = { type:'drag', item:sel, p, dx0:valueOf(sel,'dx'), dy0:valueOf(sel,'dy'), moved:false };
+  } else {
+    gesture = { type:'pan', x:e.clientX, y:e.clientY, tx0:tx, ty0:ty, target, moved:false };
+  }
+});
+
+ov.addEventListener('pointermove', e => {
+  if (!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId, e);
+  if (!gesture) return;
+  if (gesture.type === 'pinch' && pts.size === 2){
+    const [a,b] = [...pts.values()];
+    const d = Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY);
+    const s = Math.min(6, Math.max(.1, gesture.s0 * d / gesture.d0));
+    const vp = viewport.getBoundingClientRect();
+    const cx = gesture.cx - vp.left, cy = gesture.cy - vp.top;
+    tx = cx - (cx - gesture.tx0) * s / gesture.s0;
+    ty = cy - (cy - gesture.ty0) * s / gesture.s0;
+    scale = s; userMoved = true; setTransform(); draw(); return;
+  }
+  if (gesture.type === 'pan'){
+    if (Math.abs(e.clientX-gesture.x) + Math.abs(e.clientY-gesture.y) > 6){
+      gesture.moved = true; userMoved = true;
+    }
+    tx = gesture.tx0 + (e.clientX - gesture.x);
+    ty = gesture.ty0 + (e.clientY - gesture.y);
+    setTransform(); return;
+  }
+  if (gesture.type === 'drag'){
+    const p = local(e);
+    gesture.moved = true;
+    const step = v => Math.round(v*2)/2;
+    setValue(gesture.item,'dx', step(gesture.dx0 + mm((p.x-gesture.p.x)*PX/PX)));
+    setValue(gesture.item,'dy', step(gesture.dy0 + mm((p.y-gesture.p.y)*PX/PX)));
+  }
+});
+
+ov.addEventListener('pointerup', e => {
+  pts.delete(e.pointerId);
+  const g = gesture;
+  if (pts.size === 0) gesture = null;
+  if (!g) return;
+  if (g.type === 'note'){
+    const at = pageAt(g.p.x, g.p.y);
+    if (at) startNote(at, hit(g.p.x, g.p.y));
+  } else if (g.type === 'pan' && !g.moved){
+    sel = g.target || null; draw(); render(); openSheet();
+  }
+});
+ov.addEventListener('pointercancel', e => { pts.delete(e.pointerId); gesture = null; });
+
+/* ------------------------------------------------------------------ sheet */
+const sheet = $('#sheet'), body = $('#body');
+const openSheet = () => { sheet.classList.remove('peek'); };
+// The grip cycles closed -> half -> tall, so a long list of controls can be
+// read without giving up sight of the pages by default.
+$('#grip').addEventListener('click', () => {
+  if (sheet.classList.contains('peek')) sheet.classList.remove('peek');
+  else if (!sheet.classList.contains('full')) sheet.classList.add('full');
+  else sheet.classList.remove('full'), sheet.classList.add('peek');
+});
+document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+  tab = b.dataset.tab;
+  document.querySelectorAll('[data-tab]').forEach(x =>
+    x.setAttribute('aria-pressed', String(x === b)));
+  openSheet(); render();
+});
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[data-view]').forEach(x =>
+    x.setAttribute('aria-pressed', String(x === b)));
+  fitTo(b.dataset.view);
+});
+$('#modeBtn').onclick = e => {
+  mode = mode === 'note' ? 'select' : 'note';
+  e.currentTarget.setAttribute('aria-pressed', String(mode === 'note'));
+  e.currentTarget.textContent = mode === 'note' ? 'Noting' : 'Note';
+};
+$('#origBtn').onclick = e => {
+  showOriginal = !showOriginal;
+  e.currentTarget.setAttribute('aria-pressed', String(showOriginal));
+  applyAll();
+};
+
+/* ------------------------------------------------------------- rendering */
+function render(){
+  $('#noteCount').textContent = state.notes.length || '';
+  if (tab === 'element') return renderElement();
+  if (tab === 'notes') return renderNotes();
+  renderCheck();
+}
+
+function renderElement(){
+  body.replaceChildren();
+  if (!sel){
+    body.innerHTML = '<p class="empty">Tap anything on the spread — the title, a wash, ' +
+      'the artwork, a heading — to see its real position in millimetres and nudge it.</p>' +
+      '<p class="built">Built from ' + BUILT_FROM + '</p>';
+    return;
+  }
+  const r = sel.el.getBoundingClientRect();
+  const p = sel.el.closest('.page').getBoundingClientRect();
+  const wrap = document.createElement('div');
+  wrap.innerHTML =
+    '<div class="who"><h2>'+sel.name+'</h2><span class="kind">'+sel.kind+'</span></div>' +
+    '<dl class="readout">' +
+      '<div><dt>X</dt><dd>'+mm(r.left-p.left)+'</dd></div>' +
+      '<div><dt>Y</dt><dd>'+mm(r.top-p.top)+'</dd></div>' +
+      '<div><dt>W</dt><dd>'+mm(r.width)+'</dd></div>' +
+      '<div><dt>H</dt><dd>'+mm(r.height)+'</dd></div>' +
+    '</dl>';
+  body.appendChild(wrap);
+
+  (CONTROLS[sel.kind] || []).forEach(prop => {
+    const spec = SPEC[prop], val = valueOf(sel, prop);
+    const row = document.createElement('div');
+    row.className = 'stepper';
+    const lab = document.createElement('span');
+    lab.className = 'lab';
+    lab.innerHTML = spec.label + '<small>' + spec.unit + '</small>';
+    const dec = document.createElement('button'); dec.textContent = '−';
+    dec.setAttribute('aria-label','Decrease '+spec.label);
+    const outEl = document.createElement('output');
+    const inc = document.createElement('button'); inc.textContent = '+';
+    inc.setAttribute('aria-label','Increase '+spec.label);
+    const show = () => {
+      const v = valueOf(sel, prop);
+      outEl.textContent = spec.step < .01 ? v.toFixed(3) : v.toFixed(1);
+      outEl.classList.toggle('changed', v !== baseValue(sel, prop));
+    };
+    dec.onclick = () => { setValue(sel, prop, valueOf(sel,prop) - spec.step); };
+    inc.onclick = () => { setValue(sel, prop, valueOf(sel,prop) + spec.step); };
+    show();
+    row.append(lab, dec, outEl, inc);
+    body.appendChild(row);
+  });
+
+  const btns = document.createElement('div');
+  btns.className = 'rowbtns';
+  const r1 = document.createElement('button');
+  r1.textContent = 'Reset this';
+  r1.onclick = () => { delete state.overrides[sel.key]; applyAll(); save(); };
+  const r2 = document.createElement('button');
+  r2.textContent = 'Note about this';
+  r2.className = 'primary';
+  r2.onclick = () => {
+    const p2 = sel.el.closest('.page');
+    const rr = sel.el.getBoundingClientRect(), pr = p2.getBoundingClientRect();
+    startNote({ page: p2.id === 'page1' ? 1 : 2,
+      xMm: mm(rr.left + rr.width/2 - pr.left), yMm: mm(rr.top + rr.height/2 - pr.top) }, sel);
+  };
+  btns.append(r1, r2);
+  body.appendChild(btns);
+}
+
+let pendingNote = null;
+function startNote(at, item){
+  pendingNote = { ...at, element: item ? item.name : null };
+  tab = 'notes';
+  document.querySelectorAll('[data-tab]').forEach(x =>
+    x.setAttribute('aria-pressed', String(x.dataset.tab === 'notes')));
+  openSheet(); render();
+  const ta = body.querySelector('textarea');
+  if (ta) ta.focus();
+}
+
+function renderNotes(){
+  body.replaceChildren();
+  const ol = document.createElement('ul');
+  ol.className = 'notes';
+  state.notes.forEach(n => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="num">'+n.n+'</span><span class="txt">'+
+      n.text.replace(/[<&]/g, c => c === '<' ? '&lt;' : '&amp;') +
+      '<span class="meta">page '+n.page+' · '+n.xMm+', '+n.yMm+' mm'+
+      (n.element ? ' · '+n.element : '')+'</span></span>';
+    const del = document.createElement('button');
+    del.className = 'del'; del.textContent = '×';
+    del.setAttribute('aria-label','Delete note '+n.n);
+    del.onclick = () => { state.notes = state.notes.filter(x => x !== n);
+      renderNotes(); draw(); save(); };
+    li.appendChild(del);
+    ol.appendChild(li);
+  });
+  body.appendChild(ol);
+
+  const c = document.createElement('div');
+  c.className = 'composer';
+  const ta = document.createElement('textarea');
+  ta.rows = 2;
+  ta.placeholder = pendingNote
+    ? 'Note about ' + (pendingNote.element || ('page ' + pendingNote.page)) + '…'
+    : 'Tap Note, then tap the spread to pin a spot — or type a general note here.';
+  const send = document.createElement('button');
+  send.textContent = 'Add';
+  send.onclick = () => {
+    const text = ta.value.trim(); if (!text) return;
+    const at = pendingNote || { page:0, xMm:0, yMm:0, element:null };
+    state.notes.push({ n: state.notes.length + 1, ...at, text, at: new Date().toISOString() });
+    pendingNote = null; ta.value = '';
+    renderNotes(); draw(); save();
+  };
+  c.append(ta, send);
+  body.appendChild(c);
+
+  const btns = document.createElement('div');
+  btns.className = 'rowbtns';
+  const reset = document.createElement('button');
+  reset.textContent = 'Reset all changes';
+  reset.onclick = () => {
+    if (!confirm('Undo every adjustment? Your notes are kept.')) return;
+    state.overrides = {}; applyAll(); save();
+  };
+  btns.append(reset);
+  body.appendChild(btns);
+}
+
+function renderCheck(){
+  body.replaceChildren();
+  let problems = [];
+  try { problems = win.assertNoPageOverflow(); } catch(e){}
+  const lines = [];
+  const art = [...doc.querySelectorAll('#page2 .decor img')];
+  let gap = Infinity;
+  doc.querySelectorAll('#notesRows .note-line').forEach(l => {
+    const b = l.getBoundingClientRect();
+    const left = Math.min(...art.map(a => win.inkSpanIn(a, b.top, b.bottom).left));
+    if (isFinite(left)) gap = Math.min(gap, mm(left - b.right));
+  });
+  lines.push(['Notes clearance from the artwork',
+    isFinite(gap) ? gap.toFixed(1)+' mm (4.0 needed)' : 'no artwork alongside',
+    !isFinite(gap) || gap >= 3.9]);
+  ['page1','page2'].forEach(pid => {
+    const p = doc.getElementById(pid);
+    const last = [...p.querySelectorAll('.page-inner .section')].pop();
+    const bottom = mm(last.getBoundingClientRect().bottom - p.getBoundingClientRect().top);
+    lines.push([pid === 'page1' ? 'Page 1 fills to' : 'Page 2 fills to',
+      bottom.toFixed(1)+' mm of 283', bottom <= 283]);
+  });
+  const div = document.createElement('div');
+  div.className = 'check';
+  div.innerHTML = lines.map(([k,v,ok]) =>
+      '<div><span>'+k+'</span> — <span class="'+(ok?'ok':'bad')+'">'+v+'</span></div>').join('') +
+    (problems.length
+      ? problems.map(p => '<div class="bad">'+p+'</div>').join('')
+      : '<div class="ok">Nothing overflows, overlaps or is clipped.</div>') +
+    '<p class="built">Built from ' + BUILT_FROM + '</p>';
+  body.appendChild(div);
+  $('#qaCount').textContent = problems.length || '';
+}
+
+/* ------------------------------------------------------------ persistence */
+let db = null, saveTimer = null;
+const status = $('#status');
+const setStatus = (t, ok) => { status.textContent = t; status.classList.toggle('saved', !!ok); };
+
+function save(){
+  clearTimeout(saveTimer);
+  setStatus('saving…');
+  saveTimer = setTimeout(async () => {
+    const payload = { overrides: state.overrides, notes: state.notes,
+                      updatedAt: new Date().toISOString() };
+    if (db){
+      try { await db.doc('review/monday').set(payload); setStatus('saved', true); }
+      catch(e){ setStatus('not saved'); }
+    } else {
+      try { localStorage.setItem('monday-review', JSON.stringify(payload));
+            setStatus('saved on this device', true); }
+      catch(e){ setStatus('not saved'); }
+    }
+  }, 700);
+}
+
+async function initStore(){
+  try { db = window.claude && await window.claude.use('db'); } catch(e){ db = null; }
+  if (db){
+    db.doc('review/monday').onSnapshot(snap => {
+      if (!snap.exists) { setStatus('ready', true); return; }
+      const d = snap.data();
+      if (snap.metadata.hasPendingWrites) return;
+      state.overrides = d.overrides || {};
+      state.notes = d.notes || [];
+      if (items.length) applyAll();
+      setStatus('saved', true);
+    }, () => setStatus('sync off'));
+  } else {
+    try {
+      const raw = localStorage.getItem('monday-review');
+      if (raw){ const d = JSON.parse(raw);
+        state.overrides = d.overrides || {}; state.notes = d.notes || [];
+        if (items.length) applyAll(); }
+    } catch(e){}
+    setStatus('on this device');
+  }
+}
+
+/* -------------------------------------------------------------------- boot */
+function start(){
+  win = frame.contentWindow; doc = frame.contentDocument;
+  const s = doc.querySelector('.spread').getBoundingClientRect();
+  frame.style.width = Math.ceil(doc.documentElement.scrollWidth) + 'px';
+  frame.style.height = Math.ceil(doc.documentElement.scrollHeight) + 'px';
+  items = buildRegistry();
+  const boot = $('#boot'); if (boot) boot.remove();
+  fitTo('spread');
+  applyAll();
+  void s;
+
+  // The faces can arrive after this, which moves everything the registry
+  // measured. Re-measure once they land — but only while nothing has been
+  // adjusted yet, so a rebuild can never record an override as the baseline.
+  if (doc.fonts) doc.fonts.ready.then(() => {
+    if (Object.keys(state.overrides).length) return;
+    items = buildRegistry();
+    const view = document.querySelector('[data-view][aria-pressed="true"]');
+    fitTo(view ? view.dataset.view : 'spread');
+    applyAll();
+  });
+}
+
+let waited = 0;
+const poll = setInterval(() => {
+  const d = frame.contentDocument;
+  waited += 200;
+  if (d && d.querySelector('#sentralRows tr')){
+    clearInterval(poll);
+    attachFonts(d);
+    const ready = Promise.all([
+      d.fonts ? d.fonts.ready : Promise.resolve(),
+      ...[...d.images].map(i => i.complete ? Promise.resolve()
+        : new Promise(r => { i.addEventListener('load', r, {once:true});
+                             i.addEventListener('error', r, {once:true}); }))
+    ]);
+    Promise.race([ready, new Promise(r => setTimeout(r, 4000))])
+      .then(() => setTimeout(start, 100));
+  } else if (waited >= 15000){
+    clearInterval(poll);
+    $('#boot').textContent = 'The spread did not finish loading. Pull down to reload.';
+  }
+}, 200);
+
+// Turning the phone changes the stage; re-fit unless the reader has panned
+// or zoomed to somewhere of their own.
+window.addEventListener('resize', () => {
+  if (!items.length) return;
+  if (userMoved) draw(); else fitTo(lastView);
+});
+initStore();
+render();
+</script>
+</body>
+</html>

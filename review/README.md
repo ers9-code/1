@@ -82,3 +82,28 @@ Row counts, Life Skills GO's columns, the generated date logic, the Notes
 silhouette algorithm, A4 geometry and table structure stay code-controlled and
 are not exposed here. The tool is for artwork, title composition, heading
 washes, typography, spacing, metadata hierarchy and visual position.
+
+## On a phone
+
+`review/monday-review-artifact.html` is the same tool as a single hosted page —
+built by `node review/build-artifact.js` from `monday/index.html`,
+`monday/planner.css`, `monday/monday.js` and the artwork, so it cannot drift
+from what the planner renders. **Rebuild it after changing any of those files,
+then republish**, or the phone will show a stale spread; the page prints the
+commit it was built from in the Check tab.
+
+Differences from the desktop tool, all forced by being a standalone page:
+
+- The artwork is re-encoded to WebP at its native pixel dimensions (no crop, no
+  trim, no resize) so the page is ~3MB rather than ~9MB. Print output still uses
+  the untouched PNGs.
+- The webfonts are attached from script rather than linked in the markup. A
+  stylesheet that is still loading blocks every script on the page, so a slow
+  font host would otherwise leave the tool stuck at "loading".
+- Adjustments and notes save to the artifact's own store, so they survive
+  reloads and can be read back here. Without that store they fall back to the
+  phone's local storage and stay on that device.
+
+Tap to select; the sheet shows the element's real millimetres and steppers in
+0.5mm increments. Drag a selected element to move it. One finger pans, two
+pinch. "Note" turns taps into pins. "Before" flips to the unmodified planner.
