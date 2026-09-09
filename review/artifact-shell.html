@@ -57,7 +57,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .sub{font-size:12px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase;}
 .status{margin-left:auto; font-size:12px; color:var(--muted);}
 .status.saved{color:var(--ok);}
-.bar-row{display:flex; gap:8px; align-items:center;}
+.bar-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+.zoomctl{display:flex; gap:6px; align-items:center;}
+.zoomctl .icon{min-width:40px; padding:0; font-size:17px; line-height:1;}
+#zoomPct{
+  min-width:52px; text-align:center; font-size:13px; color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.hintline{font-size:12px; color:var(--muted); flex:1; min-width:0;}
+@media (max-width:520px){ .hintline{display:none;} }
 .seg{
   display:flex; background:var(--sunk); border-radius:9px; padding:2px; gap:2px; flex:1;
 }
@@ -195,6 +203,26 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 @media (prefers-reduced-motion:no-preference){
   .sheet{transition:max-height .18s ease;}
 }
+
+/* ---------- wide screens ----------------------------------------------
+   On a desktop the sheet becomes a side panel and the spread gets the rest
+   of the window, which is the whole point of being on a big screen: the
+   pages can be read at a useful size while the controls stay put. */
+@media (min-width:820px){
+  .sheet{
+    top:0; bottom:0; left:auto; right:0; width:360px;
+    max-height:none; border-radius:0; border-top:0; border-left:1px solid var(--line);
+    box-shadow:-2px 0 14px rgba(0,0,0,.08);
+  }
+  .sheet.full{max-height:none;}
+  .sheet.peek .body{display:block;}     /* nothing to collapse beside the page */
+  .sheet.peek .tabs{border-bottom:1px solid var(--line);}
+  .grip{display:none;}
+  .body{flex:1;}
+  .bar{padding-right:372px;}
+  .seg{flex:0 0 auto;}
+  .seg button{padding:0 20px;}
+}
 </style>
 </head>
 <body>
@@ -213,6 +241,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
     </div>
     <button class="icon" id="modeBtn" aria-pressed="false">Note</button>
     <button class="icon" id="origBtn" aria-pressed="false">Before</button>
+  </div>
+  <div class="bar-row">
+    <span class="zoomctl">
+      <button class="icon" id="zoomOut" aria-label="Zoom out">−</button>
+      <span id="zoomPct">100%</span>
+      <button class="icon" id="zoomIn" aria-label="Zoom in">+</button>
+      <button class="icon" id="zoomFit">Fit</button>
+    </span>
+    <span class="hintline">Tap a heading, wash or the artwork to select it</span>
   </div>
 </header>
 
@@ -424,19 +461,35 @@ function applyAll(rebuild){
 /* ------------------------------------------------------------------ view */
 function setTransform(){
   stage.style.transform = 'translate('+tx+'px,'+ty+'px) scale('+scale+')';
+  const pct = $('#zoomPct');
+  if (pct) pct.textContent = Math.round(scale*100) + '%';
+}
+
+/* Zoom about the middle of what is on screen, for the buttons. */
+function zoomBy(factor){
+  const vp = viewport.getBoundingClientRect();
+  const cx = vp.width/2, cy = vp.height/2;
+  const s = Math.min(6, Math.max(.1, scale * factor));
+  tx = cx - (cx - tx) * s / scale;
+  ty = cy - (cy - ty) * s / scale;
+  scale = s; userMoved = true; setTransform(); draw();
 }
 let lastView = 'spread', userMoved = false;
+const isWide = () => window.matchMedia('(min-width:820px)').matches;
 function fitTo(what){
   lastView = what; userMoved = false;
   const vp = viewport.getBoundingClientRect();
   const t = what==='spread' ? doc.querySelector('.spread') : doc.getElementById(what);
   if (!t) return;
   const r = t.getBoundingClientRect();
-  // Always reserve the sheet's resting height, whether it is open or not, so
-  // opening and closing it never moves the pages under the reader's thumb.
-  const h = vp.height - Math.min(vp.height * 0.5, 380);
-  scale = Math.min((vp.width-16)/r.width, (h-16)/r.height);
-  tx = (vp.width - r.width*scale)/2 - r.left*scale;
+  // Reserve the panel's space whether it is open or not, so opening and
+  // closing it never moves the pages: beside the spread on a wide screen,
+  // below it on a phone.
+  const wide = isWide();
+  const w = vp.width - (wide ? 372 : 0);
+  const h = vp.height - (wide ? 0 : Math.min(vp.height * 0.5, 380));
+  scale = Math.min((w-24)/r.width, (h-24)/r.height);
+  tx = (w - r.width*scale)/2 - r.left*scale;
   ty = (h - r.height*scale)/2 - r.top*scale;
   setTransform(); draw();
 }
@@ -555,6 +608,17 @@ ov.addEventListener('pointerup', e => {
 });
 ov.addEventListener('pointercancel', e => { pts.delete(e.pointerId); gesture = null; });
 
+/* Wheel zooms about the cursor, the way any canvas does. */
+ov.addEventListener('wheel', e => {
+  e.preventDefault();
+  const vp = viewport.getBoundingClientRect();
+  const cx = e.clientX - vp.left, cy = e.clientY - vp.top;
+  const s = Math.min(6, Math.max(.1, scale * (e.deltaY < 0 ? 1.12 : 1/1.12)));
+  tx = cx - (cx - tx) * s / scale;
+  ty = cy - (cy - ty) * s / scale;
+  scale = s; userMoved = true; setTransform(); draw();
+}, { passive: false });
+
 /* A plain tap, as a fallback. Some mobile browsers cancel a pointer sequence
    mid-gesture, which would swallow the selection; click still arrives. */
 ov.addEventListener('click', e => {
@@ -593,6 +657,9 @@ document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => {
     x.setAttribute('aria-pressed', String(x === b)));
   fitTo(b.dataset.view);
 });
+$('#zoomIn').onclick  = () => zoomBy(1.25);
+$('#zoomOut').onclick = () => zoomBy(1/1.25);
+$('#zoomFit').onclick = () => fitTo(lastView);
 $('#modeBtn').onclick = e => {
   mode = mode === 'note' ? 'select' : 'note';
   e.currentTarget.setAttribute('aria-pressed', String(mode === 'note'));
@@ -859,8 +926,11 @@ async function initStore(){
 function start(){
   win = frame.contentWindow; doc = frame.contentDocument;
   const s = doc.querySelector('.spread').getBoundingClientRect();
-  frame.style.width = Math.ceil(doc.documentElement.scrollWidth) + 'px';
-  frame.style.height = Math.ceil(doc.documentElement.scrollHeight) + 'px';
+  // Size the frame to its content and suppress its own scrollbars: panning is
+  // this tool's job, and a scrollbar inside the stage is just noise.
+  doc.documentElement.style.overflow = 'hidden';
+  frame.style.width = Math.ceil(doc.documentElement.scrollWidth) + 2 + 'px';
+  frame.style.height = Math.ceil(doc.documentElement.scrollHeight) + 2 + 'px';
   items = buildRegistry();
   const boot = $('#boot'); if (boot) boot.remove();
   fitTo('spread');
