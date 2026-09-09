@@ -58,21 +58,29 @@
 .decor{position:absolute;pointer-events:none;z-index:0;}
 .decor img{display:block;width:100%;height:auto;}
 
-/* Assets are used in their drawn orientation — no rotation, no crop.
-   Measured ink placement: corner_top_left.png carries its paint in the RIGHT
-   44-100% of its canvas, so it is the asset that hugs a bottom-RIGHT corner.
-   Sized as a genuine compositional element in the lower right of page 2,
-   sitting alongside the Notes area; the notes lines step around it. */
-.decor.corner-br{bottom:-24mm; right:-6mm; width:132mm;}
+/* Lower-right compositional element on page 2.
+   Uses the bracket asset — measured at 35% dark pigment with the gold curves
+   and speckle — rather than the pale plume. Its mass sits at the canvas
+   top-left, so it is rotated 180deg to hug a bottom-right corner; rotation
+   is a transform, not a crop, and mirroring is the pack's own method.
+   Bleed is kept small so the dark base stays on the page rather than
+   running off the trimmed edge. */
+.decor.corner-br{bottom:-8mm; right:-8mm; width:124mm;}
+.decor.corner-br img{transform:rotate(180deg);}
 
 /* ---------- main page heading (§4) — page 1 of a spread only -------------- */
 .main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;}
+/* Stronger than a section wash, but faded so the word dominates the title
+   area rather than the watercolour. The pigment is light (measured mean
+   luminance 205) and 88% opaque, so fading reads as translucent rather than
+   muddy — it is the opacity, not the hue, that made it heavy. */
 .main-title-wash{
   position:absolute;
   left:-6mm;
   top:50%;
   width:150mm;
   transform:translateY(-50%);
+  opacity:.52;
   z-index:0;
   pointer-events:none;
 }
@@ -127,11 +135,16 @@
 /* ---------- section + heading wash (§2, §6) ------------------------------ */
 .section{flex:0 0 auto;margin-top:var(--section-gap);}
 .section-heading{position:relative;height:8.6mm;display:flex;align-items:center;}
+/* Section washes read as quiet stationery texture, not a banner. The supplied
+   pigment is pale (mean luminance ~210) but 91% fully opaque, which is what
+   made it look saturated; fading blends it toward the cream paper and keeps
+   the small darker concentration at the left end proportionally intact. */
 .section-heading .wash{
   position:absolute;
   left:-7mm;
   top:50%;
   transform:translateY(-50%);
+  opacity:.34;
   z-index:0;
   pointer-events:none;
 }
@@ -223,9 +236,9 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
 /* Stepped so the block hugs the artwork's silhouette. No line may run
    under or through the art — verified by the ink-aware QA. */
 .note-line.n1{width:100%;}
-.note-line.n2{width:100%;}
-.note-line.n3{width:66%;}
-.note-line.n4{width:58%;}
+.note-line.n2{width:64%;}
+.note-line.n3{width:60%;}
+.note-line.n4{width:56%;}
 
 /* ---------- end of day (§14) — narrow, clear of the corner art ----------- */
 .end-options{margin-top:2.2mm;max-width:96mm;}

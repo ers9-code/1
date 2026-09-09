@@ -91,6 +91,11 @@ function inkRectOf(img) {
     }
     frac = x1 < 0 ? { x0: 0, y0: 0, x1: 1, y1: 1 }
                   : { x0: x0 / W, y0: y0 / H, x1: (x1 + 1) / W, y1: (y1 + 1) / H };
+    // The bbox is measured on the unrotated bitmap; mirror it to match the
+    // CSS transform actually applied, so the QA tests where the paint lands.
+    const flip = img.dataset.flip || "";
+    if (flip.includes("x")) frac = { ...frac, x0: 1 - frac.x1, x1: 1 - frac.x0 };
+    if (flip.includes("y")) frac = { ...frac, y0: 1 - frac.y1, y1: 1 - frac.y0 };
     inkCache.set(img.src, frac);
   }
   return {
