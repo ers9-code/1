@@ -143,8 +143,13 @@
    only the margin to live in and could only ever read as a clipped sliver.
    Insetting the word opens a composed band at the outer edge for it, and
    costs no writing space — every table, the rule and the sections stay on
-   the page axis. */
-.main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;margin-left:16mm;}
+   the page axis.
+
+   The inset is kept to the minimum the accent needs: enough to clear its
+   paint, close enough that the title still reads against the operational
+   axis below. The wash is positioned against this wrap, so word and wash
+   move together. */
+.main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;margin-left:11mm;}
 /* Stronger than a section wash, but faded so the word dominates the title
    area rather than the watercolour. The pigment is light (measured mean
    luminance 205) and 88% opaque, so fading reads as translucent rather than
@@ -214,14 +219,15 @@
   display:flex;
   flex-direction:column;
   align-items:flex-end;
-  gap:1mm;
+  gap:.8mm;
   text-align:right;
 }
+/* Reads as the word DATE, not as separated micro-letters. */
 .p2-date-block .p2-label{
-  font-size:2.3mm;
-  font-weight:400;
+  font-size:2.7mm;
+  font-weight:500;
   line-height:1;
-  letter-spacing:.22em;
+  letter-spacing:.06em;
   color:var(--mauve);
 }
 .p2-date-block .p2-date{
