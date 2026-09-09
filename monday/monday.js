@@ -15,7 +15,9 @@ const config = {
   tasks: 6,
   sentrals: 10,
   calls: 6,
-  notesLines: 4
+  // Notes takes the rest of page 2 — the count is what fits at 9.5mm spacing
+  // once Sentrals and Calls are placed. Verify against the rendered page.
+  notesLines: 7
 };
 
 const dateOf = iso => new Date(iso + "T12:00:00");
@@ -199,7 +201,12 @@ function fitHeadingWashes() {
    on MONDAY's own letters (the metadata line used to drag the centre down)
    and only modestly longer than the word, so the body sits behind the letters
    instead of trailing off past the Y. Opacity is untouched. */
-const TITLE_LEAD_MM = 7, TITLE_BODY_FRAC = 0.86, TITLE_H_FRAC = 0.42;
+/* Sized so the master's strong region spans the whole word plus the lead-in,
+   with the fade left as a tail rather than the wash petering out mid-word;
+   TITLE_CENTRE places the painted band through the middle-to-lower part of
+   the lettering instead of across its optical centre. */
+const TITLE_LEAD_MM = 10, TITLE_BODY_FRAC = 0.80, TITLE_H_FRAC = 0.44,
+      TITLE_CENTRE = 0.58;
 function fitTitleWash() {
   const PX = 96 / 25.4;
   const title = document.querySelector(".main-title");
@@ -219,11 +226,8 @@ function fitTitleWash() {
   wash.style.width = widthMm.toFixed(1) + "mm";
   wash.style.height = heightMm.toFixed(1) + "mm";
 
-  // Centre on the glyphs. A text range reports the line box, whose extra
-  // leading sits above the capitals, so bias the centre up by the difference
-  // between the line box and the type's own cap band.
-  const capCentre = textRect.height ? textRect.top + textRect.height * 0.46
-                                    : titleRect.top + titleRect.height / 2;
+  const capCentre = textRect.height ? textRect.top + textRect.height * TITLE_CENTRE
+                                    : titleRect.top + titleRect.height * TITLE_CENTRE;
   // ...but never far enough up to push the wash off the sheet: the header sits
   // only one top margin below the trim.
   const page = wash.closest(".page").getBoundingClientRect();
@@ -310,7 +314,7 @@ function assertNoPageOverflow() {
     // .note-line rather than .notes-shell: the shell is a full-width layout
     // box, while the rules inside it are what actually step around the art.
     const decorImgs = [...page.querySelectorAll(".decor img")];
-    page.querySelectorAll(".table-shell, .list-shell, .note-line, .end-options, .section-heading h2, .main-title").forEach(el => {
+    page.querySelectorAll(".table-shell, .list-shell, .note-line, .section-heading h2, .main-title").forEach(el => {
       const b = el.getBoundingClientRect();
       decorImgs.forEach(img => {
         const span = inkSpanIn(img, b.top, b.bottom);

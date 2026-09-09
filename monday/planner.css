@@ -113,24 +113,7 @@
   opacity:.5;
 }
 
-/* ---------- page 1: outer-edge accent -----------------------------------
-   A small painterly weight beside the title so it is not floating
-   unsupported. Absolutely positioned, so it takes no vertical room from the
-   four sections.
-
-   The wedge master's dense edges are hard-cut in the artwork itself (its
-   pigment runs to the canvas edge, by design, for bleeding). Seating those
-   two cut edges exactly on the page trim is what makes it read as a
-   deliberate bleed rather than a cropped scrap — the previous placement hung
-   the cut edge inside the sheet with the dense band clipped above the trim.
-   Sized so its paint stops well short of the title column, and nowhere near
-   the inner binding gutter (verified per scanline by the overlap QA). */
-.decor.art-tl{top:0; left:0; width:36mm;}
-.decor.art-tl img{
-  transform:rotate(180deg);
-  filter:contrast(1.08) brightness(.95) saturate(.92);
-  opacity:.88;
-}
+/* Page 1 carries no corner artwork: see the note in index.html. */
 
 /* ---------- main page heading (§4) — page 1 of a spread only -------------- */
 .main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;}
@@ -197,9 +180,9 @@
   color:var(--warm-grey);
 }
 .page2-meta .p2-date{
-  font-size:3.9mm;
+  font-size:4.1mm;
   font-weight:500;
-  letter-spacing:.045em;
+  letter-spacing:.04em;
   color:var(--charcoal);
   text-align:right;
   white-space:nowrap;
@@ -345,13 +328,6 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
 .note-line.n2{width:64%;}
 .note-line.n3{width:60%;}
 .note-line.n4{width:56%;}
-
-/* ---------- end of day (§14) — narrow, clear of the corner art ----------- */
-.end-options{margin-top:2.2mm;max-width:96mm;}
-.end-option{
-  display:flex;align-items:center;gap:2.6mm;
-  height:7.2mm;font-size:3mm;
-}
 
 /* ---------- print ------------------------------------------------------- */
 @page{size:A4 portrait;margin:0;}
