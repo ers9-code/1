@@ -105,5 +105,11 @@ Differences from the desktop tool, all forced by being a standalone page:
   phone's local storage and stay on that device.
 
 Tap to select; the sheet shows the element's real millimetres and steppers in
-0.5mm increments. Drag a selected element to move it. One finger pans, two
-pinch. "Note" turns taps into pins. "Before" flips to the unmodified planner.
+0.5mm increments — press and hold to repeat. Drag a selected element to move
+it. One finger pans, two pinch. "Note" turns taps into pins. "Before" flips to
+the unmodified planner.
+
+Value changes update the panel's numbers in place rather than re-rendering it.
+That is not a micro-optimisation: rebuilding the panel resets its scroll to the
+top, which moves the button out from under the thumb and makes the steppers
+feel dead after a single press.

@@ -146,6 +146,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .stepper button{
   width:var(--tap); height:var(--tap); border:1px solid var(--line); border-radius:10px;
   font-size:20px; line-height:1; background:var(--surface);
+  touch-action:manipulation; user-select:none; -webkit-user-select:none;
 }
 .stepper button:active{background:var(--sunk);}
 .stepper output{
@@ -409,10 +410,15 @@ function applyOne(item){
   if ('letterSpacing' in v) el.style.letterSpacing = v.letterSpacing+'em';
 }
 
-function applyAll(){
+/* rebuild: replace the panel's contents (selection or tab changed).
+   Otherwise only the numbers are refreshed — rebuilding on every press threw
+   the panel's scroll back to the top, which moved the button out from under
+   the thumb and made the steppers feel dead after one tap. */
+function applyAll(rebuild){
   items.forEach(applyOne);
   try { win.fitNotesToArtwork(4); } catch(e){}
-  draw(); render();
+  draw();
+  if (rebuild || tab !== 'element' || !stepRefs.length) render(); else refreshValues();
 }
 
 /* ------------------------------------------------------------------ view */
@@ -606,8 +612,43 @@ function render(){
   renderCheck();
 }
 
+/* Live references into the element pane, so a value change can update the
+   numbers in place instead of replacing the panel under the reader's hand. */
+let stepRefs = [], readoutCells = null;
+
+/* Steppers fire on press and then repeat while held — half a millimetre per
+   tap is a lot of tapping when something needs moving several millimetres. */
+function hold(btn, fn){
+  let delay, repeat;
+  const stop = () => { clearTimeout(delay); clearInterval(repeat); };
+  btn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    fn();
+    delay = setTimeout(() => { repeat = setInterval(fn, 90); }, 420);
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(t => btn.addEventListener(t, stop));
+}
+
+function refreshValues(){
+  if (!sel) return;
+  stepRefs.forEach(({ prop, outEl, spec }) => {
+    const v = valueOf(sel, prop);
+    outEl.textContent = spec.step < .01 ? v.toFixed(3) : v.toFixed(1);
+    outEl.classList.toggle('changed', v !== baseValue(sel, prop));
+  });
+  if (readoutCells){
+    const r = sel.el.getBoundingClientRect();
+    const p = sel.el.closest('.page').getBoundingClientRect();
+    readoutCells.x.textContent = mm(r.left - p.left);
+    readoutCells.y.textContent = mm(r.top - p.top);
+    readoutCells.w.textContent = mm(r.width);
+    readoutCells.h.textContent = mm(r.height);
+  }
+}
+
 function renderElement(){
   body.replaceChildren();
+  stepRefs = []; readoutCells = null;
   if (!sel){
     body.innerHTML = '<p class="empty">Tap anything on the spread — the title, a wash, ' +
       'the artwork, a heading — to see its real position in millimetres and nudge it.</p>' +
@@ -626,6 +667,8 @@ function renderElement(){
       '<div><dt>H</dt><dd>'+mm(r.height)+'</dd></div>' +
     '</dl>';
   body.appendChild(wrap);
+  const dds = wrap.querySelectorAll('.readout dd');
+  readoutCells = { x: dds[0], y: dds[1], w: dds[2], h: dds[3] };
 
   (CONTROLS[sel.kind] || []).forEach(prop => {
     const spec = SPEC[prop], val = valueOf(sel, prop);
@@ -639,23 +682,19 @@ function renderElement(){
     const outEl = document.createElement('output');
     const inc = document.createElement('button'); inc.textContent = '+';
     inc.setAttribute('aria-label','Increase '+spec.label);
-    const show = () => {
-      const v = valueOf(sel, prop);
-      outEl.textContent = spec.step < .01 ? v.toFixed(3) : v.toFixed(1);
-      outEl.classList.toggle('changed', v !== baseValue(sel, prop));
-    };
-    dec.onclick = () => { setValue(sel, prop, valueOf(sel,prop) - spec.step); };
-    inc.onclick = () => { setValue(sel, prop, valueOf(sel,prop) + spec.step); };
-    show();
+    hold(dec, () => setValue(sel, prop, valueOf(sel, prop) - spec.step));
+    hold(inc, () => setValue(sel, prop, valueOf(sel, prop) + spec.step));
+    stepRefs.push({ prop, outEl, spec });
     row.append(lab, dec, outEl, inc);
     body.appendChild(row);
   });
+  refreshValues();
 
   const btns = document.createElement('div');
   btns.className = 'rowbtns';
   const r1 = document.createElement('button');
   r1.textContent = 'Reset this';
-  r1.onclick = () => { delete state.overrides[sel.key]; applyAll(); save(); };
+  r1.onclick = () => { delete state.overrides[sel.key]; applyAll(true); save(); };
   const r2 = document.createElement('button');
   r2.textContent = 'Note about this';
   r2.className = 'primary';
@@ -725,7 +764,7 @@ function renderNotes(){
   reset.textContent = 'Reset all changes';
   reset.onclick = () => {
     if (!confirm('Undo every adjustment? Your notes are kept.')) return;
-    state.overrides = {}; applyAll(); save();
+    state.overrides = {}; applyAll(true); save();
   };
   btns.append(reset);
   body.appendChild(btns);
@@ -802,7 +841,7 @@ async function initStore(){
       if (snap.metadata.hasPendingWrites) return;
       state.overrides = d.overrides || {};
       state.notes = d.notes || [];
-      if (items.length) applyAll();
+      if (items.length) applyAll(true);
       setStatus('saved', true);
     }, () => setStatus('sync off'));
   } else {
@@ -810,7 +849,7 @@ async function initStore(){
       const raw = localStorage.getItem('monday-review');
       if (raw){ const d = JSON.parse(raw);
         state.overrides = d.overrides || {}; state.notes = d.notes || [];
-        if (items.length) applyAll(); }
+        if (items.length) applyAll(true); }
     } catch(e){}
     setStatus('on this device');
   }
