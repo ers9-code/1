@@ -16,12 +16,13 @@
   <!-- ================= PAGE 1 — large day heading lives here only (§4) ===== -->
   <section class="page left" id="page1">
 
-    <!-- Outer-edge counterweight for the title area. Absolutely positioned, so
-         it costs the four sections no vertical room: Life Skills GO keeps its
-         six rows. The wedge master is rotated 180deg to put its dark pigment
-         along the top and outer edges; data-flip tells the QA to mirror the
-         measured silhouette to match. It stays clear of the title column and
-         of the inner binding gutter. No crop, no auto-trim. -->
+    <!-- Outer-edge accent for the title area. Absolutely positioned, so it
+         costs the four sections no vertical room. The wedge master is rotated
+         180deg to put its dark pigment along the top and outer edges, and sat
+         so those (artwork-cut) edges land on the page trim as a bleed;
+         data-flip tells the QA to mirror the measured silhouette to match. It
+         stays clear of the title column and of the inner binding gutter.
+         No crop, no auto-trim. -->
     <div class="decor art-tl">
       <img src="../assets/decorative/png/corner_top_left.png" data-flip="xy" alt="">
     </div>
@@ -72,7 +73,12 @@
         </div>
         <div class="table-shell">
           <table>
-            <thead><tr><th style="width:30%">Student</th><th style="width:35%">Check-In / Flag</th><th>Action / Follow Up</th></tr></thead>
+            <thead><tr>
+              <th style="width:24%">Student</th>
+              <th style="width:48%">Emotion / Context</th>
+              <th class="tick" style="width:14%">Checked In</th>
+              <th class="tick" style="width:14%">Sentral Note Completed</th>
+            </tr></thead>
             <tbody id="lifeSkillsRows"></tbody>
           </table>
         </div>
@@ -107,10 +113,10 @@
     <div class="page-inner">
 
       <header class="page2-meta">
-        <span data-bind="weekday"></span><span class="sep">·</span>
-        <span data-bind="date-long"></span><span class="sep">·</span>
-        <span data-bind="term"></span><span class="sep">·</span>
-        <span>WEEK <span data-bind="week"></span></span>
+        <span class="p2-ref">
+          <span data-bind="weekday"></span><span class="sep">·</span><span data-bind="term"></span><span class="sep">·</span>WEEK <span data-bind="week"></span>
+        </span>
+        <span class="p2-date" data-bind="date-long"></span>
       </header>
       <div class="gold-rule"></div>
 

@@ -23,10 +23,17 @@
   --serif:'Cormorant Garamond',Georgia,serif;
   --sans:'Source Sans 3',Arial,Helvetica,sans-serif;
 
-  /* rhythm */
-  --row-h:7.6mm;
-  --thead-h:6mm;
-  --section-gap:3.8mm;
+  /* rhythm — write-in rows are the fixed point; everything else gives way to
+     them. Structured rows 9mm, Notes only slightly more open at 9.5mm. */
+  /* Set a shade under target: a row's rule and its pixel snapping add ~0.26mm,
+     so these render at 9.0mm and 9.5mm. Verify with the SIZES report, not the
+     declaration. */
+  --row-h:8.75mm;
+  --note-h:9.25mm;
+  --thead-h:5.4mm;
+  --head-h:7.8mm;
+  --shell-gap:1.2mm;
+  --section-gap:4mm;
   --rule:.18mm;
 }
 
@@ -45,6 +52,9 @@
 /* mirrored gutter margins: outer 14mm, inner 17.5mm */
 .page.left {padding:13mm 17.5mm 14mm 14mm;}
 .page.right{padding:13mm 14mm 14mm 17.5mm;}
+/* Page 1 carries fewer rows than page 2, so its sections take the slack as
+   breathing room rather than leaving it all at the foot of the page. */
+.page.left{--section-gap:5.9mm;}
 
 .page-inner{
   position:relative;
@@ -84,32 +94,38 @@
 .art-br img{position:absolute;}
 
 .art-br .art-strata{
-  width:112mm; right:-6mm; bottom:-4mm;
+  width:112mm; right:2mm; bottom:6mm;
   mix-blend-mode:multiply;
   filter:contrast(1.12) brightness(.92) saturate(.9);
   opacity:.92;
 }
-/* Unchanged geometry from the approved pass. Its mass sits at the canvas
+/* Same size as the approved pass, shifted up and left as a whole composition
+   so the rich part of the artwork reaches up alongside Notes / Overflow
+   instead of piling up beside End of Day. Its mass sits at the canvas
    top-left, so it is rotated 180deg to hug a bottom-right corner. */
 .art-br .art-bracket{
-  width:124mm; right:-8mm; bottom:-8mm;
+  width:124mm; right:0; bottom:2mm;
   transform:rotate(180deg);
 }
 .art-br .art-speckle{
-  width:60mm; right:-6mm; bottom:-6mm;
+  width:60mm; right:2mm; bottom:4mm;
   mix-blend-mode:multiply;
   opacity:.5;
 }
 
-/* ---------- page 1: outer-edge counterweight ----------------------------
-   A small painterly weight at the top outer corner so the title area is not
-   floating unsupported. It is absolutely positioned decoration, so it takes
-   no vertical room from the four sections and Life Skills GO keeps its six
-   rows. The wedge master rotated 180deg puts its dark pigment along the top
-   and outer edges and lets it thin away downward; it is placed so its paint
-   stays outside the title column and nowhere near the inner binding gutter
-   (verified per scanline by the overlap QA, not by eye). */
-.decor.art-tl{top:-16mm; left:-6mm; width:78mm;}
+/* ---------- page 1: outer-edge accent -----------------------------------
+   A small painterly weight beside the title so it is not floating
+   unsupported. Absolutely positioned, so it takes no vertical room from the
+   four sections.
+
+   The wedge master's dense edges are hard-cut in the artwork itself (its
+   pigment runs to the canvas edge, by design, for bleeding). Seating those
+   two cut edges exactly on the page trim is what makes it read as a
+   deliberate bleed rather than a cropped scrap — the previous placement hung
+   the cut edge inside the sheet with the dense band clipped above the trim.
+   Sized so its paint stops well short of the title column, and nowhere near
+   the inner binding gutter (verified per scanline by the overlap QA). */
+.decor.art-tl{top:0; left:0; width:36mm;}
 .decor.art-tl img{
   transform:rotate(180deg);
   filter:contrast(1.08) brightness(.95) saturate(.92);
@@ -121,13 +137,18 @@
 /* Stronger than a section wash, but faded so the word dominates the title
    area rather than the watercolour. The pigment is light (measured mean
    luminance 205) and 88% opaque, so fading reads as translucent rather than
-   muddy — it is the opacity, not the hue, that made it heavy. */
+   muddy — it is the opacity, not the hue, that made it heavy.
+
+   Size and vertical position come from fitTitleWash(): the wash is measured
+   against the rendered word, and centred on the letters themselves rather
+   than on the whole header block (which includes the metadata line and so
+   pulled the wash low). The values here are the pre-measurement default. */
 .main-title-wash{
   position:absolute;
   left:-6mm;
-  top:50%;
-  width:150mm;
-  transform:translateY(-50%);
+  top:0;
+  width:100mm;
+  height:42mm;
   opacity:.52;
   z-index:0;
   pointer-events:none;
@@ -156,18 +177,34 @@
   color:var(--charcoal);
 }
 
-/* ---------- compact page-2 metadata (§4) — no second large heading -------- */
+/* ---------- compact page-2 reference (§4) — no second large heading ------
+   Not a title: a reference line. The date is the one thing that has to be
+   findable when flipping through the block, so it takes the top outer corner
+   (page 2's outer edge is the right one) at a readable size, and the day /
+   term / week sit quieter on the same baseline. */
 .page2-meta{
   flex:0 0 auto;
   display:flex;
-  gap:2.4mm;
+  justify-content:space-between;
   align-items:baseline;
-  font-size:3.2mm;
-  letter-spacing:.08em;
+  gap:6mm;
   text-transform:uppercase;
-  color:var(--charcoal);
 }
-.page2-meta .sep{color:var(--mauve);}
+.page2-meta .p2-ref{
+  font-size:2.9mm;
+  font-weight:400;
+  letter-spacing:.09em;
+  color:var(--warm-grey);
+}
+.page2-meta .p2-date{
+  font-size:3.9mm;
+  font-weight:500;
+  letter-spacing:.045em;
+  color:var(--charcoal);
+  text-align:right;
+  white-space:nowrap;
+}
+.page2-meta .sep{color:var(--mauve);padding:0 .6mm;}
 
 /* ---------- gold rule ----------------------------------------------------
    Coded rather than asset-backed: gold_fine_rule.svg has no
@@ -185,7 +222,7 @@
 
 /* ---------- section + heading wash (§2, §6) ------------------------------ */
 .section{flex:0 0 auto;margin-top:var(--section-gap);}
-.section-heading{position:relative;height:8.6mm;display:flex;align-items:center;}
+.section-heading{position:relative;height:var(--head-h);display:flex;align-items:center;}
 /* Section washes read as quiet stationery texture, not a banner. The supplied
    pigment is pale (mean luminance ~210) but 91% fully opaque, which is what
    made it look saturated; fading blends it toward the cream paper and keeps
@@ -216,11 +253,11 @@
   z-index:1;
   margin:0;
   font-family:var(--sans);
-  font-weight:600;
-  font-size:3.5mm;
+  font-weight:500;          /* medium — refined, not a bold UI label */
+  font-size:3.6mm;
   line-height:1;
   text-transform:uppercase;
-  letter-spacing:.075em;
+  letter-spacing:.055em;
   color:var(--charcoal);
 }
 
@@ -228,7 +265,7 @@
 .table-shell{
   position:relative;
   padding-left:2.6mm;   /* room for the left accent strip */
-  margin-top:1.4mm;
+  margin-top:var(--shell-gap);
 }
 .table-shell::before{           /* thin mauve strip, ~1.1mm (§7.4) */
   content:"";
@@ -239,19 +276,23 @@
   opacity:.55;
 }
 table{width:100%;border-collapse:collapse;table-layout:fixed;}
+/* Quieter than the section heading: lighter weight, smaller, less tracking.
+   Hierarchy is section heading first, column label second. */
 thead th{
   height:var(--thead-h);
   padding:0 2mm;
   text-align:left;
   vertical-align:middle;
-  font-size:2.8mm;
-  font-weight:600;
-  letter-spacing:.055em;
+  font-size:2.7mm;
+  font-weight:500;
+  letter-spacing:.045em;
   text-transform:uppercase;
   color:var(--charcoal);
   background:var(--light-grey);
   border-bottom:var(--rule) solid var(--line-grey);
 }
+/* Tick columns: not writing fields, so the label centres over its checkbox. */
+thead th.tick, tbody td.tick{text-align:center;padding:0 1mm;}
 tbody td{
   height:var(--row-h);
   padding:0 2mm;
@@ -262,7 +303,7 @@ tbody td{
 thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
 
 /* ---------- checklist (§7.5) -------------------------------------------- */
-.list-shell{position:relative;padding-left:2.6mm;margin-top:1.4mm;}
+.list-shell{position:relative;padding-left:2.6mm;margin-top:var(--shell-gap);}
 .list-shell::before{
   content:"";position:absolute;left:0;top:0;bottom:0;width:1.1mm;
   background:var(--mauve);opacity:.55;
@@ -276,6 +317,8 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
 }
 .check{
   flex:0 0 auto;
+  display:inline-block;
+  vertical-align:middle;
   width:4.4mm;height:4.4mm;
   border:.25mm solid var(--charcoal);
   border-radius:.4mm;
@@ -283,15 +326,15 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
 }
 
 /* ---------- notes / overflow (§14) — shaped to hug the corner art -------- */
-.notes-shell{position:relative;padding-left:2.6mm;margin-top:1.4mm;}
+.notes-shell{position:relative;padding-left:2.6mm;margin-top:var(--shell-gap);}
 .notes-shell::before{
   content:"";position:absolute;left:0;top:0;bottom:0;width:1.1mm;
   background:var(--mauve);opacity:.55;
 }
-/* Taller than a table row: this is the page's open writing area, and the
-   extra height lets it sit alongside the lower-right artwork. */
+/* Only slightly more open than a structured row — it is the page's free
+   writing area, not a different rhythm. */
 .note-line{
-  height:12mm;
+  height:var(--note-h);
   border-bottom:var(--rule) solid var(--line-grey);
 }
 /* Fallbacks only. At runtime each rule is fitted to the artwork's real edge
@@ -307,7 +350,7 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
 .end-options{margin-top:2.2mm;max-width:96mm;}
 .end-option{
   display:flex;align-items:center;gap:2.6mm;
-  height:7.6mm;font-size:3mm;
+  height:7.2mm;font-size:3mm;
 }
 
 /* ---------- print ------------------------------------------------------- */

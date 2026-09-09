@@ -7,11 +7,11 @@ const config = {
   term: "TERM 4",
   week: 1,
 
-  // approved ranges: appointments 3-4, students 3-5, lifeSkills 5-7,
-  // tasks 5-7, sentrals 8-12, calls 5-7
-  appointments: 4,
-  students: 5,
-  lifeSkills: 6,
+  // Page 1 is 3/4/5/6 by decision: fewer rows so each row can carry a
+  // practical handwriting height (~9mm) instead of being squashed.
+  appointments: 3,
+  students: 4,
+  lifeSkills: 5,
   tasks: 6,
   sentrals: 10,
   calls: 6,
@@ -33,12 +33,23 @@ function bindMetadata(c) {
   });
 }
 
-function fillTable(tbodyId, rows, cols) {
+/* tickCols lists column indexes that record a yes/no rather than writing:
+   those cells get one centred empty checkbox and no writing space. */
+function fillTable(tbodyId, rows, cols, tickCols = []) {
   const tbody = document.getElementById(tbodyId);
   tbody.replaceChildren();
   for (let r = 0; r < rows; r++) {
     const tr = document.createElement("tr");
-    for (let c = 0; c < cols; c++) tr.appendChild(document.createElement("td"));
+    for (let c = 0; c < cols; c++) {
+      const td = document.createElement("td");
+      if (tickCols.includes(c)) {
+        td.className = "tick";
+        const box = document.createElement("span");
+        box.className = "check";
+        td.appendChild(box);
+      }
+      tr.appendChild(td);
+    }
     tbody.appendChild(tr);
   }
 }
@@ -158,7 +169,8 @@ const HEADING_WASH_MASTERS = [
 ];
 const WASH_LEAD_MM = 4;       // paint starts this far left of the first letter
 const WASH_BODY_FRAC = 0.8;   // the strong part of each master
-const WASH_MIN_MM = 36, WASH_MAX_MM = 84, WASH_MAX_H_MM = 21;
+const WASH_MIN_MM = 36, WASH_MAX_MM = 84;
+const WASH_H_FRAC = 0.42, WASH_MIN_H_MM = 16, WASH_MAX_H_MM = 22;
 
 function fitHeadingWashes() {
   const PX = 96 / 25.4;
@@ -170,11 +182,56 @@ function fitHeadingWashes() {
     const widthMm = Math.min(WASH_MAX_MM, Math.max(WASH_MIN_MM, span / WASH_BODY_FRAC));
     const master = HEADING_WASH_MASTERS.find(m => span <= m.maxMm);
     wash.src = wash.src.replace(/blank_heading_[a-z]+\.png$/, master.file);
-    const aspect = wash.naturalWidth && wash.naturalHeight
-      ? wash.naturalWidth / wash.naturalHeight : 3;
+    // The painted swipe occupies only the middle ~40% of each master's canvas,
+    // so height is set from the wash's own length rather than left at the
+    // natural 3:1 — a short heading would otherwise get a swipe too slight to
+    // read as watercolour, and a long one a swipe deep enough to look like a
+    // banner. Held between bounds so every heading gets a comparable body.
+    const heightMm = Math.min(WASH_MAX_H_MM, Math.max(WASH_MIN_H_MM, widthMm * WASH_H_FRAC));
     wash.style.width = widthMm.toFixed(1) + "mm";
-    wash.style.height = Math.min(WASH_MAX_H_MM, widthMm / aspect).toFixed(1) + "mm";
+    wash.style.height = heightMm.toFixed(1) + "mm";
+    wash.style.top = "50%";
+    wash.style.transform = "translateY(-50%)";
   });
+}
+
+/* The title wash is measured against the word, not the header block: centred
+   on MONDAY's own letters (the metadata line used to drag the centre down)
+   and only modestly longer than the word, so the body sits behind the letters
+   instead of trailing off past the Y. Opacity is untouched. */
+const TITLE_LEAD_MM = 7, TITLE_BODY_FRAC = 0.86, TITLE_H_FRAC = 0.42;
+function fitTitleWash() {
+  const PX = 96 / 25.4;
+  const title = document.querySelector(".main-title");
+  const wash = document.querySelector(".main-title-wash");
+  const wrap = document.querySelector(".main-title-wrap");
+  if (!title || !wash || !wrap) return;
+
+  // Width of the word itself: the h1 is a block, so measure a range over its text.
+  const range = document.createRange();
+  range.selectNodeContents(title);
+  const textRect = range.getBoundingClientRect();
+  const wrapRect = wrap.getBoundingClientRect();
+  const titleRect = title.getBoundingClientRect();
+
+  const widthMm = (TITLE_LEAD_MM + textRect.width / PX) / TITLE_BODY_FRAC;
+  const heightMm = widthMm * TITLE_H_FRAC;
+  wash.style.width = widthMm.toFixed(1) + "mm";
+  wash.style.height = heightMm.toFixed(1) + "mm";
+
+  // Centre on the glyphs. A text range reports the line box, whose extra
+  // leading sits above the capitals, so bias the centre up by the difference
+  // between the line box and the type's own cap band.
+  const capCentre = textRect.height ? textRect.top + textRect.height * 0.46
+                                    : titleRect.top + titleRect.height / 2;
+  // ...but never far enough up to push the wash off the sheet: the header sits
+  // only one top margin below the trim.
+  const page = wash.closest(".page").getBoundingClientRect();
+  const headroomMm = (wrapRect.top - page.top) / PX;
+  const topMm = Math.max(0.6 - headroomMm,
+                         (capCentre - wrapRect.top) / PX - heightMm / 2);
+  wash.style.top = topMm.toFixed(1) + "mm";
+  wash.style.transform = "none";
 }
 
 /* Measures the actual painted extent of a decorative PNG, ignoring the
@@ -260,7 +317,8 @@ function assertNoPageOverflow() {
         if (!isFinite(span.left)) return;
         const overlapX = Math.min(b.right, span.right) - Math.max(b.left, span.left);
         if (overlapX > 1) {
-          problems.push(`${id}: content overlaps ${img.src.split("/").pop()} by ${Math.round(overlapX)}px`);
+          const what = (el.className || el.tagName).toString().trim().slice(0, 24);
+          problems.push(`${id}: "${what}" overlaps ${img.src.split("/").pop()} by ${Math.round(overlapX)}px`);
         }
       });
     });
@@ -273,7 +331,8 @@ function build() {
   bindMetadata(config);
   fillTable("appointmentsRows", config.appointments, 2);
   fillTable("studentRows", config.students, 3);
-  fillTable("lifeSkillsRows", config.lifeSkills, 3);
+  // Life Skills GO: student, emotion/context, then two tick columns
+  fillTable("lifeSkillsRows", config.lifeSkills, 4, [2, 3]);
   fillChecklist("taskRows", config.tasks);   // one full-width column
   fillTable("sentralRows", config.sentrals, 2);
   fillTable("callRows", config.calls, 3);
@@ -308,8 +367,9 @@ build();
 
 /* Washes are sized from rendered text, so they wait for the web fonts;
    re-run on load in case a fallback measured first. */
-fitHeadingWashes();
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHeadingWashes);
+function fitType() { fitHeadingWashes(); fitTitleWash(); }
+fitType();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitType);
 
 /* Notes rules are fitted once the artwork has decoded, so they follow its
    real edge. 4mm safety gap between the longest rule and the nearest paint. */
@@ -325,12 +385,13 @@ function fitWhenArtReady() {
 }
 fitWhenArtReady();
 window.addEventListener("load", () => {
-  fitHeadingWashes();
+  fitType();
   fitNotesToArtwork(NOTES_SAFETY_GAP_MM);
 });
 
 window.assertNoPageOverflow = assertNoPageOverflow;
 window.fitHeadingWashes = fitHeadingWashes;
+window.fitTitleWash = fitTitleWash;
 window.inkReport = inkReport;
 window.fitNotesToArtwork = fitNotesToArtwork;
 window.inkSpanIn = inkSpanIn;
