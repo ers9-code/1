@@ -132,7 +132,9 @@ function assertNoPageOverflow() {
     const decor = [...page.querySelectorAll(".decor img")].map(img => (
       { name: img.src.split("/").pop(), box: inkRectOf(img) }
     ));
-    page.querySelectorAll(".table-shell, .list-shell, .notes-shell, .end-options, .section-heading h2, .main-title").forEach(el => {
+    // .note-line rather than .notes-shell: the shell is a full-width layout
+    // box, while the rules inside it are what actually step around the art.
+    page.querySelectorAll(".table-shell, .list-shell, .note-line, .end-options, .section-heading h2, .main-title").forEach(el => {
       const b = el.getBoundingClientRect();
       decor.forEach(d => {
         const overlapX = Math.min(b.right, d.box.right) - Math.max(b.left, d.box.left);
@@ -152,8 +154,7 @@ function build() {
   fillTable("appointmentsRows", config.appointments, 2);
   fillTable("studentRows", config.students, 3);
   fillTable("lifeSkillsRows", config.lifeSkills, 3);
-  fillChecklist("taskColA", Math.ceil(config.tasks / 2));
-  fillChecklist("taskColB", Math.floor(config.tasks / 2));
+  fillChecklist("taskRows", config.tasks);   // one full-width column
   fillTable("sentralRows", config.sentrals, 2);
   fillTable("callRows", config.calls, 3);
   fillNotes("notesRows", config.notesLines);

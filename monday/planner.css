@@ -24,9 +24,9 @@
   --sans:'Source Sans 3',Arial,Helvetica,sans-serif;
 
   /* rhythm */
-  --row-h:8.3mm;
-  --thead-h:6.2mm;
-  --section-gap:4.2mm;
+  --row-h:7.6mm;
+  --thead-h:6mm;
+  --section-gap:3.8mm;
   --rule:.18mm;
 }
 
@@ -59,10 +59,11 @@
 .decor img{display:block;width:100%;height:auto;}
 
 /* Assets are used in their drawn orientation — no rotation, no crop.
-   The plume assets rise from their canvas bottom, so they sit at bottom
-   corners; left/right are a mirrored pair so the facing pages balance (§9). */
-.decor.corner-bl{bottom:-36mm; left:-30mm;  width:74mm;}
-.decor.corner-br{bottom:-24mm; right:-22mm; width:74mm;}
+   Measured ink placement: corner_top_left.png carries its paint in the RIGHT
+   44-100% of its canvas, so it is the asset that hugs a bottom-RIGHT corner.
+   Sized as a genuine compositional element in the lower right of page 2,
+   sitting alongside the Notes area; the notes lines step around it. */
+.decor.corner-br{bottom:-24mm; right:-6mm; width:132mm;}
 
 /* ---------- main page heading (§4) — page 1 of a spread only -------------- */
 .main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;}
@@ -81,7 +82,7 @@
   margin:0;
   font-family:var(--serif);
   font-weight:500;
-  font-size:19mm;
+  font-size:18mm;
   line-height:1.05;
   letter-spacing:.01em;
   color:var(--plum);
@@ -125,7 +126,7 @@
 
 /* ---------- section + heading wash (§2, §6) ------------------------------ */
 .section{flex:0 0 auto;margin-top:var(--section-gap);}
-.section-heading{position:relative;height:9.4mm;display:flex;align-items:center;}
+.section-heading{position:relative;height:8.6mm;display:flex;align-items:center;}
 .section-heading .wash{
   position:absolute;
   left:-7mm;
@@ -192,7 +193,6 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
   content:"";position:absolute;left:0;top:0;bottom:0;width:1.1mm;
   background:var(--mauve);opacity:.55;
 }
-.tasks-two-col{display:grid;grid-template-columns:1fr 1fr;column-gap:7mm;}
 .check-row{
   height:var(--row-h);
   display:flex;
@@ -214,15 +214,18 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
   content:"";position:absolute;left:0;top:0;bottom:0;width:1.1mm;
   background:var(--mauve);opacity:.55;
 }
+/* Taller than a table row: this is the page's open writing area, and the
+   extra height lets it sit alongside the lower-right artwork. */
 .note-line{
-  height:var(--row-h);
+  height:12mm;
   border-bottom:var(--rule) solid var(--line-grey);
 }
-/* progressive shortening so the block hugs the bottom-right artwork */
+/* Stepped so the block hugs the artwork's silhouette. No line may run
+   under or through the art — verified by the ink-aware QA. */
 .note-line.n1{width:100%;}
-.note-line.n2{width:92%;}
-.note-line.n3{width:80%;}
-.note-line.n4{width:66%;}
+.note-line.n2{width:100%;}
+.note-line.n3{width:66%;}
+.note-line.n4{width:58%;}
 
 /* ---------- end of day (§14) — narrow, clear of the corner art ----------- */
 .end-options{margin-top:2.2mm;max-width:96mm;}
