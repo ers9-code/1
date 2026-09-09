@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Welfare Planner — Monday Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="spread">
+
+  <!-- PAGE 1 ONLY gets the large day heading. -->
+  <section class="page left" id="monday-page-1">
+    <img class="corner top-left" src="../assets/decorative/png/corner_top_left.png" alt="">
+
+    <header class="main-title-wrap">
+      <img class="main-title-wash" src="../assets/heading_backgrounds/png/blank_page_title_wash.png" alt="">
+      <h1 class="main-title" data-bind="weekday"></h1>
+      <div class="main-meta"><span data-bind="date-long"></span> · <span data-bind="term"></span> · WEEK <span data-bind="week"></span></div>
+    </header>
+    <div class="gold-rule"></div>
+
+    <section class="section">
+      <div class="section-heading long">
+        <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_wash_long.png" alt="">
+        <h2>Appointments / Meetings</h2>
+      </div>
+      <div class="table-shell">
+        <table>
+          <thead><tr><th style="width:27%">Time</th><th>Details / Purpose</th></tr></thead>
+          <tbody id="appointmentsRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading long">
+        <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_wash_long.png" alt="">
+        <h2>Students to Follow Up</h2>
+      </div>
+      <div class="table-shell">
+        <table>
+          <thead><tr><th style="width:31%">Student</th><th style="width:36%">Reason / Focus</th><th>Action / Next Step</th></tr></thead>
+          <tbody id="studentRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading medium">
+        <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_wash_medium.png" alt="">
+        <h2>Life Skills GO</h2>
+      </div>
+      <div class="table-shell">
+        <table>
+          <thead><tr><th style="width:31%">Student</th><th style="width:35%">Check-In / Flag</th><th>Action / Follow Up</th></tr></thead>
+          <tbody id="lifeSkillsRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading medium">
+        <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_wash_medium.png" alt="">
+        <h2>Tasks / Admin</h2>
+      </div>
+      <div class="list-shell tasks-two-col">
+        <div class="tasks-col" id="taskColA"></div>
+        <div class="tasks-col" id="taskColB"></div>
+      </div>
+    </section>
+
+    <div class="footer-rule"></div>
+    <div class="page-no">30</div>
+  </section>
+
+  <!-- PAGE 2: compact generated metadata only. NO second large page heading. -->
+  <section class="page right" id="monday-page-2">
+    <img class="corner bottom-right" src="../assets/decorative/png/corner_bottom_right.png" alt="">
+    <img class="splatter" src="../assets/decorative/png/gold_splatter.png" alt="">
+
+    <header class="page2-meta">
+      <span data-bind="weekday"></span>
+      <span>·</span>
+      <span data-bind="date-long"></span>
+      <span>·</span>
+      <span data-bind="term"></span>
+      <span>·</span>
+      <span>WEEK <span data-bind="week"></span></span>
+    </header>
+    <div class="gold-rule"></div>
+
+    <section class="section">
+      <div class="section-heading medium">
+        <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_wash_medium.png" alt="">
+        <h2>Sentrals</h2>
+      </div>
+      <div class="table-shell">
+        <table>
+          <thead><tr><th style="width:33%">Student</th><th>What to Write Up</th></tr></thead>
+          <tbody id="sentralRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading long">
+        <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_wash_long.png" alt="">
+        <h2>Calls / Email / Messages</h2>
+      </div>
+      <div class="table-shell">
+        <table>
+          <thead><tr><th style="width:31%">Contact</th><th style="width:40%">Purpose / Outcome</th><th>Follow Up Needed?</th></tr></thead>
+          <tbody id="callRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading medium">
+        <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_wash_medium.png" alt="">
+        <h2>Notes / Overflow</h2>
+      </div>
+      <div class="notes-shell" id="notesRows"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading medium">
+        <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_wash_medium.png" alt="">
+        <h2>End of Day</h2>
+      </div>
+      <div class="end-options">
+        <div class="option"><span class="check"></span><span>Everything completed</span></div>
+        <div class="option"><span class="check"></span><span>Incomplete tasks moved to Friday backlog</span></div>
+      </div>
+    </section>
+
+    <div class="footer-rule"></div>
+    <div class="page-no">31</div>
+  </section>
+
+</div>
+<script src="monday-reference.js"></script>
+</body>
+</html>

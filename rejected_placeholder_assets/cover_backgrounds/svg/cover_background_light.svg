@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 2100 2970">
+
+<defs>
+  <filter id="softLarge" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="48"/>
+  </filter>
+  <filter id="softMed" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="20"/>
+  </filter>
+</defs>
+<rect x="0" y="0" width="2100" height="2970" fill="#FFFCF9"/><path d="M-180,-120 C220,40 420,420 600,820 C760,1170 970,1320 1260,1490 C860,1540 470,1440 145,1210 C-80,1050 -180,720 -180,-120 Z" fill="#4A263E" opacity=".34" filter="url(#softLarge)"/><path d="M-120,120 C220,210 410,500 545,830 C660,1110 840,1270 1100,1420 C790,1400 515,1315 270,1150 C70,1010 -40,720 -120,120 Z" fill="#A48292" opacity=".30" filter="url(#softMed)"/><path d="M-90,430 C160,470 330,680 450,950 C545,1160 690,1305 915,1430 C645,1430 430,1360 245,1240 C85,1135 -20,875 -90,430 Z" fill="#C8BDB8" opacity=".24" filter="url(#softMed)"/><path d="M2280,3090 C1880,2930 1670,2540 1490,2140 C1330,1790 1110,1640 820,1470 C1220,1420 1610,1520 1935,1750 C2160,1910 2260,2250 2280,3090 Z" fill="#29262B" opacity=".46" filter="url(#softLarge)"/><path d="M2220,2850 C1880,2760 1690,2470 1555,2140 C1440,1860 1260,1700 1000,1550 C1310,1570 1585,1655 1830,1820 C2030,1960 2140,2250 2220,2850 Z" fill="#4A263E" opacity=".38" filter="url(#softMed)"/><path d="M80,120 C330,260 520,600 680,1010" fill="none" stroke="#C49A58" stroke-width="7" opacity=".82"/><path d="M2020,2820 C1760,2700 1580,2370 1430,1990" fill="none" stroke="#C49A58" stroke-width="7" opacity=".82"/><circle cx="145" cy="230" r="12" fill="#C49A58" opacity="0.84"/><circle cx="210" cy="310" r="5" fill="#C49A58" opacity="0.62"/><circle cx="290" cy="370" r="7" fill="#C49A58" opacity="0.68"/><circle cx="1850" cy="2580" r="10" fill="#C49A58" opacity="0.78"/><circle cx="1940" cy="2670" r="5" fill="#C49A58" opacity="0.62"/><circle cx="2010" cy="2730" r="7" fill="#C49A58" opacity="0.7"/><path d="M430,910 C820,780 1260,810 1670,980" fill="none" stroke="#EFE6E9" stroke-width="16" opacity=".10" filter="url(#softMed)"/>
+</svg>

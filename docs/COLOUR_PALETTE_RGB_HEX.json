@@ -1,0 +1,119 @@
+{
+  "paper": {
+    "hex": "#FFFCF9",
+    "rgb": [
+      255,
+      252,
+      249
+    ],
+    "use": "page background"
+  },
+  "deep_plum": {
+    "hex": "#4A263E",
+    "rgb": [
+      74,
+      38,
+      62
+    ],
+    "use": "main title / strongest accent"
+  },
+  "ink": {
+    "hex": "#29262B",
+    "rgb": [
+      41,
+      38,
+      43
+    ],
+    "use": "primary text"
+  },
+  "charcoal": {
+    "hex": "#37333A",
+    "rgb": [
+      55,
+      51,
+      58
+    ],
+    "use": "secondary dark structure"
+  },
+  "mauve": {
+    "hex": "#A48292",
+    "rgb": [
+      164,
+      130,
+      146
+    ],
+    "use": "thin left strips / restrained accent"
+  },
+  "musty_pink": {
+    "hex": "#C39AA6",
+    "rgb": [
+      195,
+      154,
+      166
+    ],
+    "use": "watercolour undertone only"
+  },
+  "soft_blush": {
+    "hex": "#EFE6E9",
+    "rgb": [
+      239,
+      230,
+      233
+    ],
+    "use": "heading wash / very light table header tint"
+  },
+  "stone": {
+    "hex": "#C8BDB8",
+    "rgb": [
+      200,
+      189,
+      184
+    ],
+    "use": "neutral watercolour layer"
+  },
+  "warm_grey": {
+    "hex": "#AAA8A7",
+    "rgb": [
+      170,
+      168,
+      167
+    ],
+    "use": "neutral secondary detail"
+  },
+  "line_grey": {
+    "hex": "#CBC6C9",
+    "rgb": [
+      203,
+      198,
+      201
+    ],
+    "use": "table / writing rules"
+  },
+  "light_grey": {
+    "hex": "#F5F1F3",
+    "rgb": [
+      245,
+      241,
+      243
+    ],
+    "use": "very light header cell fill"
+  },
+  "gold": {
+    "hex": "#C49A58",
+    "rgb": [
+      196,
+      154,
+      88
+    ],
+    "use": "fine linework and restrained speckle only"
+  },
+  "white": {
+    "hex": "#FFFFFF",
+    "rgb": [
+      255,
+      255,
+      255
+    ],
+    "use": "transparent-preview / white stock only"
+  }
+}

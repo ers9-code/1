@@ -1,0 +1,44 @@
+{
+  "critical_rules": {
+    "heading_assets_are_blank": true,
+    "divider_assets_are_blank": true,
+    "cover_assets_are_blank": true,
+    "generated_metadata_is_live_text": true,
+    "page_1_only_large_heading_for_daily_spread": true,
+    "page_2_large_welfare_operations_heading": false,
+    "crop_assets": false
+  },
+  "assets": {
+    "heading_backgrounds": [
+      "blank_heading_wash_short.svg/.png",
+      "blank_heading_wash_medium.svg/.png",
+      "blank_heading_wash_long.svg/.png",
+      "blank_page_title_wash.svg/.png"
+    ],
+    "decorative": [
+      "corner_top_left.svg/.png",
+      "corner_top_right.svg/.png",
+      "corner_bottom_left.svg/.png",
+      "corner_bottom_right.svg/.png",
+      "gold_splatter.svg/.png"
+    ],
+    "table_elements": [
+      "table_left_accent_strip.svg/.png",
+      "gold_fine_rule.svg/.png",
+      "checkbox_outline_5mm.svg/.png"
+    ],
+    "divider_backgrounds": [
+      "divider_background_light.svg/.png",
+      "divider_background_dark.svg/.png"
+    ],
+    "cover_backgrounds": [
+      "cover_background_light.svg/.png",
+      "cover_background_dark.svg/.png"
+    ]
+  },
+  "coded_reference": [
+    "index.html",
+    "styles.css",
+    "monday-reference.js"
+  ]
+}
