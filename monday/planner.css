@@ -233,8 +233,10 @@ thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
   height:12mm;
   border-bottom:var(--rule) solid var(--line-grey);
 }
-/* Stepped so the block hugs the artwork's silhouette. No line may run
-   under or through the art — verified by the ink-aware QA. */
+/* Fallbacks only. At runtime each rule is fitted to the artwork's real edge
+   for its own horizontal band (see fitNotesToArtwork), so the block follows
+   the diagonal silhouette with a fixed safety gap rather than stopping at the
+   rectangle that encloses the art. */
 .note-line.n1{width:100%;}
 .note-line.n2{width:64%;}
 .note-line.n3{width:60%;}

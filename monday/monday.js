@@ -66,6 +66,79 @@ function fillNotes(containerId, lines) {
   }
 }
 
+/* Per-scanline profile of where a decorative PNG is actually painted.
+   A single bounding box is too blunt for a diagonal edge: it reserves the
+   whole rectangle, so writing lines stop far short of the real silhouette.
+   This records the leftmost/rightmost painted pixel for each row instead,
+   mirrored to match any CSS transform on the image. */
+const profileCache = new Map();
+function inkProfile(img) {
+  const flip = img.dataset.flip || "";
+  const key = img.src + "|" + flip;
+  let cached = profileCache.get(key);
+  if (cached) return cached;
+
+  const W = 260, H = Math.max(1, Math.round(W * img.naturalHeight / img.naturalWidth));
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, W, H);
+  const d = ctx.getImageData(0, 0, W, H).data;
+
+  let rows = new Array(H);
+  for (let y = 0; y < H; y++) {
+    let l = -1, r = -1;
+    for (let x = 0; x < W; x++) {
+      if (d[(y * W + x) * 4 + 3] > 12) { if (l < 0) l = x; r = x; }
+    }
+    rows[y] = l < 0 ? null : { l: l / W, r: (r + 1) / W };
+  }
+  if (flip.includes("x")) rows = rows.map(v => v && { l: 1 - v.r, r: 1 - v.l });
+  if (flip.includes("y")) rows = rows.slice().reverse();
+
+  cached = { rows, H };
+  profileCache.set(key, cached);
+  return cached;
+}
+
+/* Painted span of an image across a horizontal band of the page, in page px. */
+function inkSpanIn(img, yTop, yBottom) {
+  const r = img.getBoundingClientRect();
+  const { rows, H } = inkProfile(img);
+  let left = Infinity, right = -Infinity;
+  for (let i = 0; i < H; i++) {
+    const rowTop = r.top + (i / H) * r.height;
+    const rowBottom = r.top + ((i + 1) / H) * r.height;
+    if (rowBottom < yTop || rowTop > yBottom) continue;
+    const v = rows[i];
+    if (!v) continue;
+    left = Math.min(left, r.left + v.l * r.width);
+    right = Math.max(right, r.left + v.r * r.width);
+  }
+  return { left, right };
+}
+
+/* Runs each Notes rule out to the artwork's real edge for its own band,
+   less a safety gap, so the block follows the diagonal instead of a box. */
+function fitNotesToArtwork(gapMm) {
+  const page = document.getElementById("page2");
+  const art = page && page.querySelector(".decor img");
+  const shell = document.getElementById("notesRows");
+  if (!art || !shell || !art.naturalWidth) return;
+
+  const PX = 96 / 25.4;
+  const gap = gapMm * PX;
+  const shellRect = shell.getBoundingClientRect();
+
+  shell.querySelectorAll(".note-line").forEach(line => {
+    const b = line.getBoundingClientRect();
+    const { left } = inkSpanIn(art, b.top, b.bottom);
+    const limit = isFinite(left) ? left - gap : shellRect.right;
+    const widthPx = Math.max(40 * PX, Math.min(shellRect.right, limit) - b.left);
+    line.style.width = (widthPx / PX).toFixed(1) + "mm";
+  });
+}
+
 /* Measures the actual painted extent of a decorative PNG, ignoring the
    transparent margin the assets are required to keep (§7.1). Without this,
    a canvas-box overlap test can never pass for a correctly-margined asset. */
@@ -133,19 +206,20 @@ function assertNoPageOverflow() {
       }
     });
 
-    // content must not sit under the decorative artwork (painted extent only)
-    const decor = [...page.querySelectorAll(".decor img")].map(img => (
-      { name: img.src.split("/").pop(), box: inkRectOf(img) }
-    ));
+    // Content must not sit on the artwork. Tested per horizontal band against
+    // the painted pixels themselves, so a diagonal edge is judged by where the
+    // paint actually is rather than by the rectangle enclosing it.
     // .note-line rather than .notes-shell: the shell is a full-width layout
     // box, while the rules inside it are what actually step around the art.
+    const decorImgs = [...page.querySelectorAll(".decor img")];
     page.querySelectorAll(".table-shell, .list-shell, .note-line, .end-options, .section-heading h2, .main-title").forEach(el => {
       const b = el.getBoundingClientRect();
-      decor.forEach(d => {
-        const overlapX = Math.min(b.right, d.box.right) - Math.max(b.left, d.box.left);
-        const overlapY = Math.min(b.bottom, d.box.bottom) - Math.max(b.top, d.box.top);
-        if (overlapX > 1 && overlapY > 1) {
-          problems.push(`${id}: content overlaps ${d.name} (${Math.round(overlapX)}x${Math.round(overlapY)}px)`);
+      decorImgs.forEach(img => {
+        const span = inkSpanIn(img, b.top, b.bottom);
+        if (!isFinite(span.left)) return;
+        const overlapX = Math.min(b.right, span.right) - Math.max(b.left, span.left);
+        if (overlapX > 1) {
+          problems.push(`${id}: content overlaps ${img.src.split("/").pop()} by ${Math.round(overlapX)}px`);
         }
       });
     });
@@ -190,5 +264,21 @@ function inkReport() {
 }
 
 build();
+
+/* Notes rules are fitted once the artwork has decoded, so they follow its
+   real edge. 4mm safety gap between the longest rule and the nearest paint. */
+const NOTES_SAFETY_GAP_MM = 4;
+function fitWhenArtReady() {
+  const art = document.querySelector("#page2 .decor img");
+  if (!art) return;
+  const run = () => fitNotesToArtwork(NOTES_SAFETY_GAP_MM);
+  if (art.complete && art.naturalWidth) run();
+  else art.addEventListener("load", run, { once: true });
+}
+fitWhenArtReady();
+window.addEventListener("load", () => fitNotesToArtwork(NOTES_SAFETY_GAP_MM));
+
 window.assertNoPageOverflow = assertNoPageOverflow;
 window.inkReport = inkReport;
+window.fitNotesToArtwork = fitNotesToArtwork;
+window.inkSpanIn = inkSpanIn;
