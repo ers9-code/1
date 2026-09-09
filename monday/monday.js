@@ -119,12 +119,15 @@ function inkSpanIn(img, yTop, yBottom) {
 }
 
 /* Runs each Notes rule out to the artwork's real edge for its own band,
-   less a safety gap, so the block follows the diagonal instead of a box. */
+   less a safety gap, so the block follows the diagonal instead of a box.
+   The lower-right composition is layered, so the limit is the leftmost paint
+   of any layer in that band — the rules clear the whole silhouette. */
 function fitNotesToArtwork(gapMm) {
   const page = document.getElementById("page2");
-  const art = page && page.querySelector(".decor img");
   const shell = document.getElementById("notesRows");
-  if (!art || !shell || !art.naturalWidth) return;
+  if (!page || !shell) return;
+  const art = [...page.querySelectorAll(".decor img")].filter(i => i.naturalWidth);
+  if (!art.length) return;
 
   const PX = 96 / 25.4;
   const gap = gapMm * PX;
@@ -132,10 +135,45 @@ function fitNotesToArtwork(gapMm) {
 
   shell.querySelectorAll(".note-line").forEach(line => {
     const b = line.getBoundingClientRect();
-    const { left } = inkSpanIn(art, b.top, b.bottom);
+    const left = Math.min(...art.map(img => inkSpanIn(img, b.top, b.bottom).left));
     const limit = isFinite(left) ? left - gap : shellRect.right;
     const widthPx = Math.max(40 * PX, Math.min(shellRect.right, limit) - b.left);
     line.style.width = (widthPx / PX).toFixed(1) + "mm";
+  });
+}
+
+/* ---- heading washes sized to their own live wording --------------------
+   Measured profile of the masters: pigment is strongest over the first ~80%
+   of the canvas and fades away over the last ~20%, and the swipe itself
+   occupies only the middle 40% of the canvas height. So sizing the wash from
+   the rendered heading width puts the strong part immediately behind the
+   wording and leaves the fade as a short tail just past it, instead of
+   stretching every heading across a fixed banner. Height is capped so a long
+   heading gets a longer swipe, not a taller one. Text stays live HTML; the
+   masters stay blank. */
+const HEADING_WASH_MASTERS = [
+  { maxMm: 30, file: "blank_heading_short.png" },
+  { maxMm: 50, file: "blank_heading_medium.png" },
+  { maxMm: Infinity, file: "blank_heading_long.png" }
+];
+const WASH_LEAD_MM = 4;       // paint starts this far left of the first letter
+const WASH_BODY_FRAC = 0.8;   // the strong part of each master
+const WASH_MIN_MM = 36, WASH_MAX_MM = 84, WASH_MAX_H_MM = 21;
+
+function fitHeadingWashes() {
+  const PX = 96 / 25.4;
+  document.querySelectorAll(".section-heading").forEach(head => {
+    const h2 = head.querySelector("h2");
+    const wash = head.querySelector(".wash");
+    if (!h2 || !wash) return;
+    const span = WASH_LEAD_MM + h2.getBoundingClientRect().width / PX;
+    const widthMm = Math.min(WASH_MAX_MM, Math.max(WASH_MIN_MM, span / WASH_BODY_FRAC));
+    const master = HEADING_WASH_MASTERS.find(m => span <= m.maxMm);
+    wash.src = wash.src.replace(/blank_heading_[a-z]+\.png$/, master.file);
+    const aspect = wash.naturalWidth && wash.naturalHeight
+      ? wash.naturalWidth / wash.naturalHeight : 3;
+    wash.style.width = widthMm.toFixed(1) + "mm";
+    wash.style.height = Math.min(WASH_MAX_H_MM, widthMm / aspect).toFixed(1) + "mm";
   });
 }
 
@@ -145,7 +183,10 @@ function fitNotesToArtwork(gapMm) {
 const inkCache = new Map();
 function inkRectOf(img) {
   const r = img.getBoundingClientRect();
-  let frac = inkCache.get(img.src);
+  // Keyed by src *and* flip: the same master is used in two orientations
+  // across the spread, so the cached box has to be orientation-specific.
+  const cacheKey = img.src + "|" + (img.dataset.flip || "");
+  let frac = inkCache.get(cacheKey);
   if (!frac) {
     const W = 240, H = Math.max(1, Math.round(W * img.naturalHeight / img.naturalWidth));
     const cv = document.createElement("canvas");
@@ -169,7 +210,7 @@ function inkRectOf(img) {
     const flip = img.dataset.flip || "";
     if (flip.includes("x")) frac = { ...frac, x0: 1 - frac.x1, x1: 1 - frac.x0 };
     if (flip.includes("y")) frac = { ...frac, y0: 1 - frac.y1, y1: 1 - frac.y0 };
-    inkCache.set(img.src, frac);
+    inkCache.set(cacheKey, frac);
   }
   return {
     left:   r.left + frac.x0 * r.width,
@@ -265,20 +306,31 @@ function inkReport() {
 
 build();
 
+/* Washes are sized from rendered text, so they wait for the web fonts;
+   re-run on load in case a fallback measured first. */
+fitHeadingWashes();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHeadingWashes);
+
 /* Notes rules are fitted once the artwork has decoded, so they follow its
    real edge. 4mm safety gap between the longest rule and the nearest paint. */
 const NOTES_SAFETY_GAP_MM = 4;
 function fitWhenArtReady() {
-  const art = document.querySelector("#page2 .decor img");
-  if (!art) return;
+  const layers = [...document.querySelectorAll("#page2 .decor img")];
+  if (!layers.length) return;
   const run = () => fitNotesToArtwork(NOTES_SAFETY_GAP_MM);
-  if (art.complete && art.naturalWidth) run();
-  else art.addEventListener("load", run, { once: true });
+  layers.forEach(img => {
+    if (img.complete && img.naturalWidth) run();
+    else img.addEventListener("load", run, { once: true });
+  });
 }
 fitWhenArtReady();
-window.addEventListener("load", () => fitNotesToArtwork(NOTES_SAFETY_GAP_MM));
+window.addEventListener("load", () => {
+  fitHeadingWashes();
+  fitNotesToArtwork(NOTES_SAFETY_GAP_MM);
+});
 
 window.assertNoPageOverflow = assertNoPageOverflow;
+window.fitHeadingWashes = fitHeadingWashes;
 window.inkReport = inkReport;
 window.fitNotesToArtwork = fitNotesToArtwork;
 window.inkSpanIn = inkSpanIn;

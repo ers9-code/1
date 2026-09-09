@@ -16,9 +16,15 @@
   <!-- ================= PAGE 1 — large day heading lives here only (§4) ===== -->
   <section class="page left" id="page1">
 
-    <!-- No corner artwork on page 1: with six full-width Tasks/Admin rows the
-         content column runs the full page, and writing space takes priority
-         over decoration. The spread's painterly weight sits on page 2. -->
+    <!-- Outer-edge counterweight for the title area. Absolutely positioned, so
+         it costs the four sections no vertical room: Life Skills GO keeps its
+         six rows. The wedge master is rotated 180deg to put its dark pigment
+         along the top and outer edges; data-flip tells the QA to mirror the
+         measured silhouette to match. It stays clear of the title column and
+         of the inner binding gutter. No crop, no auto-trim. -->
+    <div class="decor art-tl">
+      <img src="../assets/decorative/png/corner_top_left.png" data-flip="xy" alt="">
+    </div>
 
     <div class="page-inner">
 
@@ -34,7 +40,7 @@
       <div class="gold-rule"></div>
 
       <section class="section">
-        <div class="section-heading w-long">
+        <div class="section-heading">
           <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_long.png" alt="">
           <h2>Appointments / Meetings</h2>
         </div>
@@ -47,7 +53,7 @@
       </section>
 
       <section class="section">
-        <div class="section-heading w-long">
+        <div class="section-heading">
           <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_medium.png" alt="">
           <h2>Students to Follow Up</h2>
         </div>
@@ -60,7 +66,7 @@
       </section>
 
       <section class="section">
-        <div class="section-heading w-medium">
+        <div class="section-heading">
           <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_short.png" alt="">
           <h2>Life Skills GO</h2>
         </div>
@@ -73,7 +79,7 @@
       </section>
 
       <section class="section">
-        <div class="section-heading w-medium">
+        <div class="section-heading">
           <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_medium.png" alt="">
           <h2>Tasks / Admin</h2>
         </div>
@@ -86,12 +92,16 @@
   <!-- ================= PAGE 2 — compact metadata only, NO second title (§4) = -->
   <section class="page right" id="page2">
 
-    <!-- Peripheral art: lower-right compositional element. The bracket asset
-         carries the charcoal/plum layering, gold curves and speckle; its mass
-         sits top-left of canvas, so it is rotated 180deg (data-flip tells the
-         QA to flip the measured ink box to match). No crop, no auto-trim. -->
-    <div class="decor corner-br">
-      <img src="../assets/decorative/png/corner_bottom_right.png" data-flip="xy" alt="">
+    <!-- Peripheral art: lower-right composition, layered into ink strata.
+         Order is back to front — wedge strata, then the bracket (unchanged in
+         size and position, carrying the plum and the thin gold curves), then
+         restrained gold speckle over the dense corner only. data-flip tells
+         the QA to mirror each measured silhouette to match its transform.
+         No crop, no auto-trim. -->
+    <div class="decor art-br">
+      <img class="art-strata"  src="../assets/decorative/png/corner_top_left.png" alt="">
+      <img class="art-bracket" src="../assets/decorative/png/corner_bottom_right.png" data-flip="xy" alt="">
+      <img class="art-speckle" src="../assets/decorative/png/gold_splatter.png" alt="">
     </div>
 
     <div class="page-inner">
@@ -105,7 +115,7 @@
       <div class="gold-rule"></div>
 
       <section class="section">
-        <div class="section-heading w-short">
+        <div class="section-heading">
           <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_short.png" alt="">
           <h2>Sentrals</h2>
         </div>
@@ -118,7 +128,7 @@
       </section>
 
       <section class="section">
-        <div class="section-heading w-long">
+        <div class="section-heading">
           <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_long.png" alt="">
           <h2>Calls / Email / Messages</h2>
         </div>
@@ -131,7 +141,7 @@
       </section>
 
       <section class="section">
-        <div class="section-heading w-medium">
+        <div class="section-heading">
           <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_medium.png" alt="">
           <h2>Notes / Overflow</h2>
         </div>
@@ -139,7 +149,7 @@
       </section>
 
       <section class="section">
-        <div class="section-heading w-short">
+        <div class="section-heading">
           <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_short.png" alt="">
           <h2>End of Day</h2>
         </div>

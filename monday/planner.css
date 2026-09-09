@@ -58,15 +58,63 @@
 .decor{position:absolute;pointer-events:none;z-index:0;}
 .decor img{display:block;width:100%;height:auto;}
 
-/* Lower-right compositional element on page 2.
-   Uses the bracket asset — measured at 35% dark pigment with the gold curves
-   and speckle — rather than the pale plume. Its mass sits at the canvas
-   top-left, so it is rotated 180deg to hug a bottom-right corner; rotation
-   is a transform, not a crop, and mirroring is the pack's own method.
-   Bleed is kept small so the dark base stays on the page rather than
-   running off the trimmed edge. */
-.decor.corner-br{bottom:-8mm; right:-8mm; width:124mm;}
-.decor.corner-br img{transform:rotate(180deg);}
+/* ---------- page 2: layered outer-edge composition -----------------------
+   Size and placement of the bracket are unchanged; what changed is the
+   composition. The bracket alone reads as a pale mauve plume over most of
+   its on-page area (measured: 42% of its pigment is pale, and the painted
+   bands that actually sit over the page carry almost no dark pigment —
+   its charcoal mass is squeezed into the last 20mm of the sheet).
+
+   So three approved assets are stacked into ink strata, deepest at the
+   trimmed corner and thinning upward:
+     1. strata  — the wedge master (measured 52-59% dark pigment in its mass),
+                  sitting inside the bracket's silhouette so it adds depth
+                  without reaching further into the writing area;
+     2. bracket — unchanged in size and position: the plum, the thin gold
+                  curves and the speckle;
+     3. speckle — the gold splatter, restrained, only over the dense corner.
+   Layers 1 and 3 multiply, so the overlaps genuinely darken each other
+   instead of washing each other out — that is what produces strata.
+   No asset is cropped, trimmed or redrawn; rotation and scale are
+   transforms, and the tonal adjustment on the under-layer only deepens the
+   pigment already in it. */
+/* A zero-size anchor at the trimmed corner: each layer then positions itself
+   against the page, so the strata can be offset independently. */
+.decor.art-br{right:0; bottom:0; width:0; height:0;}
+.art-br img{position:absolute;}
+
+.art-br .art-strata{
+  width:112mm; right:-6mm; bottom:-4mm;
+  mix-blend-mode:multiply;
+  filter:contrast(1.12) brightness(.92) saturate(.9);
+  opacity:.92;
+}
+/* Unchanged geometry from the approved pass. Its mass sits at the canvas
+   top-left, so it is rotated 180deg to hug a bottom-right corner. */
+.art-br .art-bracket{
+  width:124mm; right:-8mm; bottom:-8mm;
+  transform:rotate(180deg);
+}
+.art-br .art-speckle{
+  width:60mm; right:-6mm; bottom:-6mm;
+  mix-blend-mode:multiply;
+  opacity:.5;
+}
+
+/* ---------- page 1: outer-edge counterweight ----------------------------
+   A small painterly weight at the top outer corner so the title area is not
+   floating unsupported. It is absolutely positioned decoration, so it takes
+   no vertical room from the four sections and Life Skills GO keeps its six
+   rows. The wedge master rotated 180deg puts its dark pigment along the top
+   and outer edges and lets it thin away downward; it is placed so its paint
+   stays outside the title column and nowhere near the inner binding gutter
+   (verified per scanline by the overlap QA, not by eye). */
+.decor.art-tl{top:-16mm; left:-6mm; width:78mm;}
+.decor.art-tl img{
+  transform:rotate(180deg);
+  filter:contrast(1.08) brightness(.95) saturate(.92);
+  opacity:.88;
+}
 
 /* ---------- main page heading (§4) — page 1 of a spread only -------------- */
 .main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;}
@@ -95,12 +143,15 @@
   letter-spacing:.01em;
   color:var(--plum);
 }
+/* Secondary to the title, but it has to be read in print: wide tracking at a
+   small size is what made it hard to scan, so it gains a little size and
+   loses most of the letter-spacing. */
 .main-meta{
   position:relative;
   z-index:1;
-  margin-top:1.2mm;
-  font-size:2.9mm;
-  letter-spacing:.16em;
+  margin-top:1.4mm;
+  font-size:3.2mm;
+  letter-spacing:.08em;
   text-transform:uppercase;
   color:var(--charcoal);
 }
@@ -111,8 +162,8 @@
   display:flex;
   gap:2.4mm;
   align-items:baseline;
-  font-size:2.9mm;
-  letter-spacing:.16em;
+  font-size:3.2mm;
+  letter-spacing:.08em;
   text-transform:uppercase;
   color:var(--charcoal);
 }
@@ -138,29 +189,39 @@
 /* Section washes read as quiet stationery texture, not a banner. The supplied
    pigment is pale (mean luminance ~210) but 91% fully opaque, which is what
    made it look saturated; fading blends it toward the cream paper and keeps
-   the small darker concentration at the left end proportionally intact. */
+   the small darker concentration at the left end proportionally intact.
+
+   The wash is also no longer stretched to a fixed banner width. Each
+   master's pigment is strongest over its first four-fifths and fades over the
+   last fifth (measured), so fitHeadingWashes() sizes every wash from its own
+   live heading: the strong part sits immediately behind the wording and the
+   fade becomes a short tail just past it. The values here are only the
+   pre-measurement default. */
 .section-heading .wash{
   position:absolute;
-  left:-7mm;
+  left:-4mm;
   top:50%;
+  width:48mm;
+  height:16mm;          /* JS caps this so the wash stays a low swipe */
   transform:translateY(-50%);
   opacity:.34;
   z-index:0;
   pointer-events:none;
 }
-.section-heading.w-short  .wash{width:78mm;}
-.section-heading.w-medium .wash{width:96mm;}
-.section-heading.w-long   .wash{width:118mm;}
+/* Operational section headings: uppercase sans, medium weight, modest
+   tracking, dark charcoal. The editorial serif is reserved for the page/day
+   title only. Text stays live HTML — uppercasing is presentational. */
 .section-heading h2{
   position:relative;
   z-index:1;
   margin:0;
-  font-family:var(--serif);
+  font-family:var(--sans);
   font-weight:600;
-  font-size:5.6mm;
+  font-size:3.5mm;
   line-height:1;
-  letter-spacing:.012em;
-  color:var(--plum);
+  text-transform:uppercase;
+  letter-spacing:.075em;
+  color:var(--charcoal);
 }
 
 /* ---------- tables (§6) — open, light, no enclosing box ------------------ */
@@ -183,9 +244,9 @@ thead th{
   padding:0 2mm;
   text-align:left;
   vertical-align:middle;
-  font-size:2.5mm;
+  font-size:2.8mm;
   font-weight:600;
-  letter-spacing:.11em;
+  letter-spacing:.055em;
   text-transform:uppercase;
   color:var(--charcoal);
   background:var(--light-grey);
