@@ -1,0 +1,250 @@
+/* ==========================================================================
+   WELFARE PLANNER — VISUAL SYSTEM
+   Tokens from docs/COLOUR_PALETTE_RGB_HEX.json
+   Rules from docs/VISUAL_SYSTEM_LOCK.md + CLAUDE_MASTER_IMPLEMENTATION_INSTRUCTIONS.md
+   ========================================================================== */
+
+:root{
+  /* palette */
+  --paper:#FFFCF9;
+  --plum:#4A263E;
+  --ink:#29262B;
+  --charcoal:#37333A;
+  --mauve:#A48292;
+  --musty-pink:#C39AA6;
+  --soft-blush:#EFE6E9;
+  --stone:#C8BDB8;
+  --warm-grey:#AAA8A7;
+  --line-grey:#CBC6C9;
+  --light-grey:#F5F1F3;
+  --gold:#C49A58;
+
+  /* type */
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Source Sans 3',Arial,Helvetica,sans-serif;
+
+  /* rhythm */
+  --row-h:8.3mm;
+  --thead-h:6.2mm;
+  --section-gap:4.2mm;
+  --rule:.18mm;
+}
+
+/* ---------- page geometry (§22) — physical size, never transform-scaled ---- */
+.page{
+  position:relative;
+  flex:0 0 auto;          /* never shrink — printable page stays physical size (§22) */
+  width:210mm;
+  height:297mm;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  overflow:hidden;
+  box-sizing:border-box;
+}
+/* mirrored gutter margins: outer 14mm, inner 17.5mm */
+.page.left {padding:13mm 17.5mm 14mm 14mm;}
+.page.right{padding:13mm 14mm 14mm 17.5mm;}
+
+.page-inner{
+  position:relative;
+  z-index:1;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ---------- decorative layer (§7) — peripheral, never over content --------- */
+.decor{position:absolute;pointer-events:none;z-index:0;}
+.decor img{display:block;width:100%;height:auto;}
+
+/* Assets are used in their drawn orientation — no rotation, no crop.
+   The plume assets rise from their canvas bottom, so they sit at bottom
+   corners; left/right are a mirrored pair so the facing pages balance (§9). */
+.decor.corner-bl{bottom:-36mm; left:-30mm;  width:74mm;}
+.decor.corner-br{bottom:-24mm; right:-22mm; width:74mm;}
+
+/* ---------- main page heading (§4) — page 1 of a spread only -------------- */
+.main-title-wrap{position:relative;flex:0 0 auto;margin-bottom:2mm;}
+.main-title-wash{
+  position:absolute;
+  left:-6mm;
+  top:50%;
+  width:150mm;
+  transform:translateY(-50%);
+  z-index:0;
+  pointer-events:none;
+}
+.main-title{
+  position:relative;
+  z-index:1;
+  margin:0;
+  font-family:var(--serif);
+  font-weight:500;
+  font-size:19mm;
+  line-height:1.05;
+  letter-spacing:.01em;
+  color:var(--plum);
+}
+.main-meta{
+  position:relative;
+  z-index:1;
+  margin-top:1.2mm;
+  font-size:2.9mm;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--charcoal);
+}
+
+/* ---------- compact page-2 metadata (§4) — no second large heading -------- */
+.page2-meta{
+  flex:0 0 auto;
+  display:flex;
+  gap:2.4mm;
+  align-items:baseline;
+  font-size:2.9mm;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--charcoal);
+}
+.page2-meta .sep{color:var(--mauve);}
+
+/* ---------- gold rule ----------------------------------------------------
+   Coded rather than asset-backed: gold_fine_rule.svg has no
+   preserveAspectRatio="none", so stretching it to a flat bar scales the
+   whole 30:1 rect down and centres it. Rules/checkbox/strip are the simple
+   vector elements the brief allows to be coded. Colour/weight match the asset. */
+.gold-rule{
+  flex:0 0 auto;
+  height:.35mm;
+  margin:2.4mm 0 0;
+  border-radius:.2mm;
+  background:var(--gold);
+  opacity:.9;
+}
+
+/* ---------- section + heading wash (§2, §6) ------------------------------ */
+.section{flex:0 0 auto;margin-top:var(--section-gap);}
+.section-heading{position:relative;height:9.4mm;display:flex;align-items:center;}
+.section-heading .wash{
+  position:absolute;
+  left:-7mm;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:0;
+  pointer-events:none;
+}
+.section-heading.w-short  .wash{width:78mm;}
+.section-heading.w-medium .wash{width:96mm;}
+.section-heading.w-long   .wash{width:118mm;}
+.section-heading h2{
+  position:relative;
+  z-index:1;
+  margin:0;
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:5.6mm;
+  line-height:1;
+  letter-spacing:.012em;
+  color:var(--plum);
+}
+
+/* ---------- tables (§6) — open, light, no enclosing box ------------------ */
+.table-shell{
+  position:relative;
+  padding-left:2.6mm;   /* room for the left accent strip */
+  margin-top:1.4mm;
+}
+.table-shell::before{           /* thin mauve strip, ~1.1mm (§7.4) */
+  content:"";
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:1.1mm;
+  background:var(--mauve);
+  opacity:.55;
+}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+thead th{
+  height:var(--thead-h);
+  padding:0 2mm;
+  text-align:left;
+  vertical-align:middle;
+  font-size:2.5mm;
+  font-weight:600;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  color:var(--charcoal);
+  background:var(--light-grey);
+  border-bottom:var(--rule) solid var(--line-grey);
+}
+tbody td{
+  height:var(--row-h);
+  padding:0 2mm;
+  border-bottom:var(--rule) solid var(--line-grey);
+  font-size:3mm;
+}
+/* only essential vertical dividers */
+thead th + th, tbody td + td{border-left:var(--rule) solid var(--line-grey);}
+
+/* ---------- checklist (§7.5) -------------------------------------------- */
+.list-shell{position:relative;padding-left:2.6mm;margin-top:1.4mm;}
+.list-shell::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:1.1mm;
+  background:var(--mauve);opacity:.55;
+}
+.tasks-two-col{display:grid;grid-template-columns:1fr 1fr;column-gap:7mm;}
+.check-row{
+  height:var(--row-h);
+  display:flex;
+  align-items:center;
+  gap:2.4mm;
+  border-bottom:var(--rule) solid var(--line-grey);
+}
+.check{
+  flex:0 0 auto;
+  width:4.4mm;height:4.4mm;
+  border:.25mm solid var(--charcoal);
+  border-radius:.4mm;
+  background:transparent;
+}
+
+/* ---------- notes / overflow (§14) — shaped to hug the corner art -------- */
+.notes-shell{position:relative;padding-left:2.6mm;margin-top:1.4mm;}
+.notes-shell::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:1.1mm;
+  background:var(--mauve);opacity:.55;
+}
+.note-line{
+  height:var(--row-h);
+  border-bottom:var(--rule) solid var(--line-grey);
+}
+/* progressive shortening so the block hugs the bottom-right artwork */
+.note-line.n1{width:100%;}
+.note-line.n2{width:92%;}
+.note-line.n3{width:80%;}
+.note-line.n4{width:66%;}
+
+/* ---------- end of day (§14) — narrow, clear of the corner art ----------- */
+.end-options{margin-top:2.2mm;max-width:96mm;}
+.end-option{
+  display:flex;align-items:center;gap:2.6mm;
+  height:7.6mm;font-size:3mm;
+}
+
+/* ---------- print ------------------------------------------------------- */
+@page{size:A4 portrait;margin:0;}
+@media print{
+  html,body{margin:0;padding:0;background:#fff;}
+  .preview-scale{transform:none !important;}
+  .spread{display:block;}
+  .page{break-after:page;page-break-after:always;box-shadow:none;}
+  .page:last-child{break-after:auto;page-break-after:auto;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+
+/* ---------- screen preview only: wrapper may scale, page never does ------ */
+@media screen{
+  body{margin:0;background:#EFEAE6;}
+  .spread{display:flex;gap:10mm;padding:10mm;align-items:flex-start;}
+  .page{box-shadow:0 2mm 8mm rgba(41,38,43,.16);}
+}

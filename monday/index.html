@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welfare Planner — Monday Two-Page Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="planner.css">
+</head>
+<body>
+
+<div class="spread">
+
+  <!-- ================= PAGE 1 — large day heading lives here only (§4) ===== -->
+  <section class="page left" id="page1">
+
+    <!-- Peripheral art: outer (left) edge, bottom corner. Asset used in its
+         drawn orientation — no rotation, no crop, transparent margin intact. -->
+    <div class="decor corner-bl">
+      <img src="../assets/decorative/png/corner_top_left.png" alt="">
+    </div>
+
+    <div class="page-inner">
+
+      <header class="main-title-wrap">
+        <img class="main-title-wash" src="../assets/heading_backgrounds/png/blank_page_title_wash.png" alt="">
+        <h1 class="main-title" data-bind="weekday"></h1>
+        <div class="main-meta">
+          <span data-bind="date-long"></span> &nbsp;·&nbsp;
+          <span data-bind="term"></span> &nbsp;·&nbsp;
+          WEEK <span data-bind="week"></span>
+        </div>
+      </header>
+      <div class="gold-rule"></div>
+
+      <section class="section">
+        <div class="section-heading w-long">
+          <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_long.png" alt="">
+          <h2>Appointments / Meetings</h2>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead><tr><th style="width:26%">Time</th><th>Details / Purpose</th></tr></thead>
+            <tbody id="appointmentsRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading w-long">
+          <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_medium.png" alt="">
+          <h2>Students to Follow Up</h2>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead><tr><th style="width:30%">Student</th><th style="width:36%">Reason / Focus</th><th>Action / Next Step</th></tr></thead>
+            <tbody id="studentRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading w-medium">
+          <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_short.png" alt="">
+          <h2>Life Skills GO</h2>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead><tr><th style="width:30%">Student</th><th style="width:35%">Check-In / Flag</th><th>Action / Follow Up</th></tr></thead>
+            <tbody id="lifeSkillsRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading w-medium">
+          <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_medium.png" alt="">
+          <h2>Tasks / Admin</h2>
+        </div>
+        <div class="list-shell tasks-two-col">
+          <div id="taskColA"></div>
+          <div id="taskColB"></div>
+        </div>
+      </section>
+
+    </div>
+  </section>
+
+  <!-- ================= PAGE 2 — compact metadata only, NO second title (§4) = -->
+  <section class="page right" id="page2">
+
+    <!-- Peripheral art: outer (right) edge, bottom corner — mirrored partner
+         of page 1 so the spread balances. Drawn orientation, no crop. -->
+    <div class="decor corner-br">
+      <img src="../assets/decorative/png/corner_top_right.png" alt="">
+    </div>
+
+    <div class="page-inner">
+
+      <header class="page2-meta">
+        <span data-bind="weekday"></span><span class="sep">·</span>
+        <span data-bind="date-long"></span><span class="sep">·</span>
+        <span data-bind="term"></span><span class="sep">·</span>
+        <span>WEEK <span data-bind="week"></span></span>
+      </header>
+      <div class="gold-rule"></div>
+
+      <section class="section">
+        <div class="section-heading w-short">
+          <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_short.png" alt="">
+          <h2>Sentrals</h2>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead><tr><th style="width:32%">Student</th><th>What to Write Up</th></tr></thead>
+            <tbody id="sentralRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading w-long">
+          <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_long.png" alt="">
+          <h2>Calls / Email / Messages</h2>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead><tr><th style="width:30%">Contact</th><th style="width:40%">Purpose / Outcome</th><th>Follow Up?</th></tr></thead>
+            <tbody id="callRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading w-medium">
+          <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_medium.png" alt="">
+          <h2>Notes / Overflow</h2>
+        </div>
+        <div class="notes-shell" id="notesRows"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading w-short">
+          <img class="wash" src="../assets/heading_backgrounds/png/blank_heading_short.png" alt="">
+          <h2>End of Day</h2>
+        </div>
+        <div class="end-options">
+          <div class="end-option"><span class="check"></span><span>Everything completed</span></div>
+          <div class="end-option"><span class="check"></span><span>Incomplete tasks moved to Friday backlog</span></div>
+        </div>
+      </section>
+
+    </div>
+  </section>
+
+</div>
+
+<script src="monday.js"></script>
+</body>
+</html>

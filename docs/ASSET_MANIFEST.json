@@ -10,17 +10,19 @@
   },
   "assets": {
     "heading_backgrounds": [
-      "blank_heading_wash_short.svg/.png",
-      "blank_heading_wash_medium.svg/.png",
-      "blank_heading_wash_long.svg/.png",
-      "blank_page_title_wash.svg/.png"
+      "blank_heading_short.png",
+      "blank_heading_medium.png",
+      "blank_heading_long.png",
+      "blank_page_title_wash.png",
+      "svg/README.txt"
     ],
     "decorative": [
-      "corner_top_left.svg/.png",
-      "corner_top_right.svg/.png",
-      "corner_bottom_left.svg/.png",
-      "corner_bottom_right.svg/.png",
-      "gold_splatter.svg/.png"
+      "corner_top_left.png",
+      "corner_top_right.png",
+      "corner_bottom_left.png",
+      "corner_bottom_right.png",
+      "gold_splatter.png",
+      "svg/README.txt"
     ],
     "table_elements": [
       "table_left_accent_strip.svg/.png",
@@ -28,17 +30,24 @@
       "checkbox_outline_5mm.svg/.png"
     ],
     "divider_backgrounds": [
-      "divider_background_light.svg/.png",
-      "divider_background_dark.svg/.png"
+      "divider_light_master.png",
+      "divider_dark_master.png",
+      "svg/README.txt"
     ],
     "cover_backgrounds": [
-      "cover_background_light.svg/.png",
-      "cover_background_dark.svg/.png"
+      "cover_light_master.png",
+      "cover_dark_master.png",
+      "svg/README.txt"
     ]
   },
   "coded_reference": [
     "index.html",
     "styles.css",
     "monday-reference.js"
+  ],
+  "notes": [
+    "This pack replaces the earlier non-approved placeholder painterly assets with approved raster PNG assets packaged into Claude's expected folder structure.",
+    "Painterly assets are PNG-only on purpose; README files explain why no SVG versions are supplied for those folders.",
+    "Table elements remain as simple SVG/PNG structural assets from the implementation pack."
   ]
 }
