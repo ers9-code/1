@@ -57,6 +57,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .sub{font-size:12px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase;}
 .status{margin-left:auto; font-size:12px; color:var(--muted);}
 .status.saved{color:var(--ok);}
+.buildtag{font-size:11px; color:var(--muted); opacity:.75;
+  font-variant-numeric:tabular-nums; letter-spacing:.02em;}
 .bar-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
 .zoomctl{display:flex; gap:6px; align-items:center;}
 .zoomctl .icon{min-width:40px; padding:0; font-size:17px; line-height:1;}
@@ -232,6 +234,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
     <span class="wordmark">Monday</span>
     <span class="sub">review</span>
     <span class="status" id="status">loading</span>
+    <span class="buildtag" id="build"></span>
   </div>
   <div class="bar-row">
     <div class="seg" role="group" aria-label="View">
@@ -249,7 +252,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
       <button class="icon" id="zoomIn" aria-label="Zoom in">+</button>
       <button class="icon" id="zoomFit">Fit</button>
     </span>
-    <span class="hintline">Drag the title, a wash or the artwork to move it &middot; drag blank paper to pan &middot; <span id="build"></span></span>
+    <span class="hintline">Drag the title, a wash or the artwork to move it &middot; drag blank paper to pan</span>
   </div>
 </header>
 
@@ -940,22 +943,23 @@ function renderCheck(){
 }
 
 /* ------------------------------------------------------------ persistence */
-let db = null, saveTimer = null;
+let db = null, saveTimer = null, dirty = false;
 const status = $('#status');
 const setStatus = (t, ok) => { status.textContent = t; status.classList.toggle('saved', !!ok); };
 
 function save(){
   clearTimeout(saveTimer);
+  dirty = true;
   setStatus('saving…');
   saveTimer = setTimeout(async () => {
     const payload = { overrides: state.overrides, notes: state.notes,
                       updatedAt: new Date().toISOString() };
     if (db){
-      try { await db.doc('review/monday').set(payload); setStatus('saved', true); }
-      catch(e){ setStatus('not saved'); }
+      try { await db.doc('review/monday').set(payload); dirty = false; setStatus('saved', true); }
+      catch(e){ setStatus('not saved — your changes are still on screen'); }
     } else {
       try { localStorage.setItem('monday-review', JSON.stringify(payload));
-            setStatus('saved on this device', true); }
+            dirty = false; setStatus('saved on this device', true); }
       catch(e){ setStatus('not saved'); }
     }
   }, 700);
@@ -968,6 +972,9 @@ async function initStore(){
       if (!snap.exists) { setStatus('ready', true); return; }
       const d = snap.data();
       if (snap.metadata.hasPendingWrites) return;
+      // A periodic refresh carrying the last saved state must not undo an edit
+      // made since: while there are unsaved changes, the page is the truth.
+      if (dirty) return;
       state.overrides = d.overrides || {};
       state.notes = d.notes || [];
       if (items.length) applyAll(true);
